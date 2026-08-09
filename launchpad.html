@@ -289,51 +289,6 @@ img{ max-width:100%; display:block; }
   </div>
 </section>
 
-<section class="board" id="roadmap" style="padding-block:1rem clamp(2rem,4vh,3rem)">
-  <h2 style="font-weight:600;letter-spacing:-.02em;font-size:clamp(1.4rem,calc(1rem + 1.4vw),2rem);margin-bottom:.4rem">What we are building next.</h2>
-  <p style="color:var(--ink-muted);max-width:64ch;line-height:1.6;margin-bottom:1.5rem">
-    Every step is the same vault, wearing a different hat. No dates, because we ship when it
-    works. In order of what we hit first.
-  </p>
-  <ol style="list-style:none;padding:0;margin:0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)">
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">01 &middot; next</span>
-      <div><b>Quantum-safe wallet with in-browser signing.</b> Generate the 24 words, sign transfers straight from the web, watch the key rotate on chain. A Phantom that a quantum computer cannot empty.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">02</span>
-      <div><b>DAO signer.</b> Replace a multisig with a rotating hash key. Every proposal signs once and the key that voted it dies. A stolen seed cannot vote for the DAO ever again.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">03</span>
-      <div><b>Treasury vault for projects.</b> Put a project treasury behind the vault instead of a hot wallet. Movements need a fresh signature; nothing on a laptop can drain it.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">04</span>
-      <div><b>Upgrade authority as a service.</b> Any Solana program can hand its upgrade key to a vault. Your contract survives a quantum break of the whole chain.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">05</span>
-      <div><b>Time-locked vaults.</b> Vest a founder allocation or a partner grant behind a schedule that only the vault can unlock. No hot key that anyone can compromise midway through.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">06</span>
-      <div><b>NFT custody for collectors.</b> Send a Metaplex asset to a vault. It stays there until a one-time signature moves it. Wallet drainers stop working.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">07</span>
-      <div><b>Signed messages under Winternitz.</b> Sign a note with a key that cannot be forged. A message from a project years from now still verifies as theirs.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">08</span>
-      <div><b>Our own curve, immutable.</b> Replace the Meteora curve with one whose upgrade key is burned. The last elliptic-curve key in the whole stack disappears. Audited before it ships, because there are no second chances with immutable code.</div>
-    </li>
-    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
-      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">09</span>
-      <div><b>Winternitz SDK.</b> A library any Solana project can drop in to put their own mint, treasury or upgrade key behind the vault. Everyone on Solana gets to skip the quantum apocalypse.</div>
-    </li>
-  </ol>
-</section>
 
 <div class="modal" id="wallet">
   <div class="modal__veil" data-close-wallet></div>

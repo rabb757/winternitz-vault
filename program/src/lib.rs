@@ -1,16 +1,3 @@
-// The Solana explorer shows Program Not Verified until this macro and a
-// verified build are in place; the macro alone gives it a contact and a URL.
-#[cfg(all(target_os = "solana", not(feature = "no-entrypoint")))]
-solana_security_txt::security_txt! {
-    name: "Winternitz Vault",
-    project_url: "https://winternitz.io",
-    contacts: "email:security@winternitz.io",
-    policy: "https://winternitz.io/security",
-    source_code: "https://github.com/rabb757/winternitz-vault",
-    preferred_languages: "en,es",
-    auditors: "None yet"
-}
-
 //! Winternitz vault.
 //!
 //! An SPL token whose mint authority and treasury live behind one-time
@@ -42,6 +29,20 @@ solana_security_txt::security_txt! {
 //! verify against no longer exists.
 
 #![allow(unexpected_cfgs)]
+
+// The Solana explorer shows Program Not Verified until this macro and a
+// verified build are in place; the macro alone gives it a contact and a URL.
+#[cfg(all(target_os = "solana", not(feature = "no-entrypoint")))]
+solana_security_txt::security_txt! {
+    name: "Winternitz Vault",
+    project_url: "https://winternitz.io",
+    contacts: "email:security@winternitz.io",
+    policy: "https://winternitz.io/security",
+    source_code: "https://github.com/rabb757/winternitz-vault",
+    preferred_languages: "en,es",
+    auditors: "None yet"
+}
+
 
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
