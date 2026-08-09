@@ -1,0 +1,21 @@
+{
+  "name": "winternitz-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "vector": "tsx src/check-vector.ts",
+    "devnet": "tsx src/devnet-test.ts",
+    "execute": "tsx src/execute-test.ts",
+    "seed": "tsx src/new-master-seed.ts"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.7.1",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.98.0",
+    "bip39": "^3.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

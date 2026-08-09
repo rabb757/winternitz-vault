@@ -1,0 +1,12 @@
+{
+  "name": "Winternitz One",
+  "symbol": "WNTR1",
+  "description": "First token launched on the Winternitz Quantum Launchpad. Its trading fees are paid to a vault that only moves on a one-time hash-based signature, the kind Shor's algorithm cannot forge. Test launch: graduates at 5 SOL.",
+  "image": "https://winternitz.io/meta/wntr1.png",
+  "external_url": "https://winternitz.io",
+  "attributes": [
+    { "trait_type": "Launchpad", "value": "Winternitz Quantum" },
+    { "trait_type": "Fee authority", "value": "Winternitz vault" },
+    { "trait_type": "Liquidity", "value": "100% locked at graduation" }
+  ]
+}

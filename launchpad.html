@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Quantum Launchpad, launch a token a quantum computer cannot forge</title>
+<link rel="icon" href="/assets/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" href="/assets/logo-512.png" sizes="512x512" />
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+<meta property="og:image" content="https://winternitz.io/assets/og.png" />
+<meta property="og:title" content="Winternitz, the first quantum-protection token on Solana" />
+<meta property="og:description" content="Supply, liquidity and fees behind keys a quantum computer cannot forge. Live on mainnet, every claim linked to a transaction." />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#fdfdfc; --surface:#ffffff; --ink:#0a0a0a; --ink-muted:#4a4a4a;
+  --text-sub:#6e6e6e; --line:#eaeaea; --blue:#2340ff; --green:#0f9d58;
+  --font-sans:"Geist","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-mono:"Geist Mono","SF Mono",ui-monospace,monospace;
+  --pad-x:clamp(1rem, calc(0.75rem + 2vw), 3.5rem);
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html{ overflow-x:hidden; }
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-sans);
+  -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%; overflow-x:hidden;
+}
+a{ color:inherit; text-decoration:none; }
+h1,h2,h3,p{ margin:0; }
+button,input,textarea{ font:inherit; }
+button{ cursor:pointer; }
+img{ max-width:100%; display:block; }
+
+/* ------------------------------- header ------------------------------- */
+.header{
+  position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:.9rem;
+  min-height:58px; padding:.5rem var(--pad-x); background:rgba(253,253,252,.93);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line); flex-wrap:wrap;
+}
+.brand{ display:flex; align-items:center; gap:.5rem; font-weight:600; letter-spacing:-.025em; }
+.brand__mark{ width:24px; height:24px; flex:0 0 auto; object-fit:contain; }
+.header__nav{ display:flex; gap:1rem; font-size:.88rem; color:var(--text-sub); }
+.header__nav a:hover{ color:var(--ink); }
+.header__spacer{ flex:1 1 auto; }
+@media (max-width:560px){ .header__nav{ display:none; } }
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border:none;
+  padding:.65rem 1.1rem; font-weight:600; font-size:.9rem; letter-spacing:-.01em;
+  background:var(--blue); color:#fff; transition:filter .2s var(--ease), box-shadow .25s var(--ease);
+}
+.btn:hover{ filter:brightness(1.09); box-shadow:0 8px 22px rgba(35,64,255,.26); }
+.btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; filter:none; }
+.btn--ghost{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+.btn--ghost:hover{ background:rgba(0,0,0,.035); box-shadow:none; }
+.btn--big{ padding:.95rem 1.6rem; font-size:1rem; }
+.btn--wide{ width:100%; }
+
+/* -------------------------------- hero -------------------------------- */
+.hero{ padding:clamp(2rem,6vh,4rem) var(--pad-x) clamp(1.5rem,3vh,2.25rem); border-bottom:1px solid var(--line); }
+.hero__kicker{ font-family:var(--font-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); }
+.hero__title{
+  margin-top:.8rem; font-weight:600; letter-spacing:-.03em; line-height:1.05;
+  font-size:clamp(1.85rem, calc(1.25rem + 2.4vw), 3.4rem); max-width:18ch;
+}
+.hero__sub{ margin-top:.9rem; max-width:56ch; color:var(--ink-muted); line-height:1.6; font-size:clamp(.9rem,.85rem + .2vw,1.02rem); }
+.hero__actions{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:1.4rem; }
+.hero__stats{
+  display:grid; gap:1px; margin-top:2rem; background:var(--line); border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fit,minmax(8rem,1fr));
+}
+.hero__stat{ background:var(--surface); padding:.85rem .95rem; }
+.hero__stat b{ display:block; font-size:1.25rem; font-weight:600; letter-spacing:-.02em; }
+.hero__stat span{ font-size:.75rem; color:var(--text-sub); }
+
+/* ------------------------------- board -------------------------------- */
+.board{ padding:clamp(1.25rem,3vh,2.25rem) var(--pad-x) 4rem; }
+.board__bar{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-bottom:1.1rem; }
+.tab{ border:1px solid var(--line); background:var(--surface); color:var(--text-sub); padding:.45rem .85rem; font-size:.84rem; font-weight:500; }
+.tab[aria-selected="true"]{ background:var(--ink); color:#fff; border-color:var(--ink); }
+.search{ margin-left:auto; border:1px solid var(--line); background:var(--surface); padding:.5rem .75rem; font-size:.84rem; min-width:10rem; flex:1 1 10rem; max-width:18rem; }
+.search:focus{ outline:none; border-color:var(--blue); }
+
+.grid{
+  display:grid; gap:1px; background:var(--line); border:1px solid var(--line);
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,19rem),1fr));
+}
+.card{ background:var(--surface); padding:1rem; display:flex; flex-direction:column; gap:.75rem; min-width:0; }
+.card:hover{ background:#fbfbfa; }
+.card__top{ display:flex; gap:.8rem; align-items:flex-start; min-width:0; }
+.avatar{
+  width:54px; height:54px; border-radius:50%; flex:0 0 auto; overflow:hidden; object-fit:cover;
+  display:grid; place-items:center; color:#fff; font:600 18px var(--font-sans);
+  border:1px solid rgba(0,0,0,.07); background:var(--ink);
+}
+.card__id{ min-width:0; flex:1 1 auto; }
+.card__name{ font-weight:600; letter-spacing:-.015em; display:flex; align-items:baseline; gap:.4rem; flex-wrap:wrap; }
+.ticker{ font-family:var(--font-mono); font-size:.76rem; color:var(--text-sub); }
+.card__mint{ margin-top:.2rem; font-family:var(--font-mono); font-size:.7rem; color:var(--text-sub); overflow-wrap:anywhere; }
+.card__mint b{ color:var(--blue); }
+.pill{
+  display:inline-flex; align-items:center; padding:.12rem .42rem; font-family:var(--font-mono);
+  font-size:.62rem; letter-spacing:.04em; text-transform:uppercase; border:1px solid var(--line); color:var(--text-sub);
+}
+.pill--q{ color:var(--blue); border-color:rgba(35,64,255,.3); background:rgba(35,64,255,.05); }
+.pill--grad{ color:var(--green); border-color:rgba(15,157,88,.3); background:rgba(15,157,88,.06); }
+.pill--mig{ color:#a34700; border-color:rgba(224,123,0,.4); background:rgba(224,123,0,.08); }
+.pill--mig::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#e07b00;
+  margin-right:.35rem; animation:pulse 1.1s ease-in-out infinite;
+}
+@keyframes pulse{ 0%,100%{ opacity:1 } 50%{ opacity:.25 } }
+.migrating{
+  margin-top:.9rem; padding:.8rem .9rem; border:1px solid rgba(224,123,0,.35);
+  background:rgba(224,123,0,.07); color:#7c4a06; font-size:.85rem; line-height:1.55; display:none;
+}
+.migrating.on{ display:block; }
+.migrating b{ color:#5c3604; }
+
+.meter{ display:flex; flex-direction:column; gap:.3rem; }
+.meter__row{ display:flex; justify-content:space-between; gap:.5rem; font-family:var(--font-mono); font-size:.72rem; color:var(--text-sub); }
+.meter__track{ height:6px; background:#f0f0ef; overflow:hidden; }
+.meter__fill{ height:100%; background:var(--blue); transition:width .5s var(--ease); }
+.meter__fill--done{ background:var(--green); }
+
+.card__foot{ display:flex; align-items:center; gap:.4rem; }
+.socials{ display:flex; gap:.35rem; }
+.socials a{ width:27px; height:27px; display:grid; place-items:center; border:1px solid var(--line); color:var(--text-sub); }
+.socials a:hover{ color:var(--ink); border-color:var(--ink); }
+.socials svg{ width:12px; height:12px; }
+.card__buy{ margin-left:auto; font-size:.82rem; font-weight:600; color:var(--blue); }
+.card__buy:hover{ text-decoration:underline; }
+
+.empty{ background:var(--surface); padding:3rem 1.25rem; text-align:center; color:var(--text-sub); grid-column:1/-1; line-height:1.6; }
+.empty b{ color:var(--ink); display:block; margin-bottom:.35rem; }
+
+/* ------------------------------- modal -------------------------------- */
+.modal{ position:fixed; inset:0; z-index:60; display:none; }
+.modal[open]{ display:block; }
+.modal__veil{ position:absolute; inset:0; background:rgba(10,10,10,.5); }
+.modal__panel{
+  position:absolute; inset:auto 0 0 0; max-height:92vh; overflow:auto; background:var(--surface);
+  border-top:1px solid var(--line); padding:1.4rem var(--pad-x) calc(2rem + env(safe-area-inset-bottom));
+}
+@media (min-width:760px){
+  .modal__panel{ inset:50% auto auto 50%; transform:translate(-50%,-50%); width:min(38rem,92vw); border:1px solid var(--line); border-radius:2px; }
+}
+.modal__title{ font-size:1.25rem; font-weight:600; letter-spacing:-.02em; }
+.modal__sub{ margin-top:.35rem; color:var(--text-sub); font-size:.86rem; line-height:1.55; }
+.field{ display:block; margin-top:.9rem; }
+.field span{ display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text-sub); margin-bottom:.3rem; }
+.field input, .field textarea{ width:100%; padding:.6rem .7rem; border:1px solid var(--line); background:var(--bg); font-size:.92rem; }
+.field input:focus, .field textarea:focus{ outline:none; border-color:var(--blue); }
+.grid2{ display:grid; gap:.9rem; }
+@media (min-width:520px){ .grid2{ grid-template-columns:1fr 1fr; } }
+
+.drop{
+  margin-top:.9rem; border:1px dashed var(--line); background:var(--bg); padding:1rem;
+  display:flex; gap:1rem; align-items:center; cursor:pointer;
+}
+.drop:hover, .drop.is-over{ border-color:var(--blue); background:rgba(35,64,255,.03); }
+.drop__preview{ width:64px; height:64px; border-radius:50%; flex:0 0 auto; background:#eee; object-fit:cover; }
+.drop__text{ font-size:.85rem; color:var(--text-sub); line-height:1.5; }
+.drop__text b{ color:var(--ink); display:block; }
+
+.note{ margin-top:1rem; padding:.8rem .9rem; border:1px solid var(--line); background:var(--bg); font-size:.82rem; line-height:1.6; color:var(--ink-muted); }
+.note b{ color:var(--ink); }
+.status{ margin-top:.9rem; font-size:.86rem; line-height:1.5; min-height:1.2em; }
+.status.err{ color:#b91c1c; } .status.ok{ color:var(--green); }
+
+
+/* ---------------------------- token panel ---------------------------- */
+.card{ cursor:pointer; }
+.panel__head{ display:flex; gap:.9rem; align-items:flex-start; }
+.panel__title{ font-size:1.2rem; font-weight:600; letter-spacing:-.02em; }
+.ca{
+  display:flex; align-items:center; gap:.5rem; margin-top:.8rem; padding:.6rem .7rem;
+  border:1px solid var(--line); background:var(--bg);
+}
+.ca code{ font-family:var(--font-mono); font-size:.76rem; overflow-wrap:anywhere; flex:1 1 auto; }
+.ca button{ border:1px solid var(--line); background:var(--surface); padding:.35rem .6rem; font-size:.76rem; font-weight:600; flex:0 0 auto; }
+.ca button:hover{ border-color:var(--ink); }
+
+.trade{ display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin-top:1rem; }
+.trade__tabs{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); }
+.trade__tab{ background:var(--surface); padding:.65rem; font-weight:600; font-size:.9rem; color:var(--text-sub); border:none; }
+.trade__tab[aria-selected="true"]{ background:var(--ink); color:#fff; }
+.trade__body{ background:var(--surface); padding:.9rem; display:flex; flex-direction:column; gap:.6rem; }
+.trade__input{ display:flex; align-items:center; gap:.5rem; border:1px solid var(--line); padding:.55rem .7rem; background:var(--bg); }
+.trade__input input{ border:none; background:transparent; width:100%; font-size:1.05rem; font-weight:600; }
+.trade__input input:focus{ outline:none; }
+.trade__input span{ font-family:var(--font-mono); font-size:.78rem; color:var(--text-sub); }
+.chips{ display:flex; gap:.35rem; flex-wrap:wrap; }
+.chip{ border:1px solid var(--line); background:var(--surface); padding:.3rem .6rem; font-size:.76rem; color:var(--text-sub); }
+.chip:hover{ border-color:var(--ink); color:var(--ink); }
+.trade__out{ font-size:.82rem; color:var(--text-sub); min-height:1.1em; }
+
+
+.bal{ display:flex; justify-content:space-between; font-size:.78rem; color:var(--text-sub); font-family:var(--font-mono); }
+.bal b{ color:var(--ink); font-weight:600; }
+.slider{ width:100%; margin:.2rem 0 0; accent-color:var(--blue); }
+.slider__marks{ display:flex; justify-content:space-between; font-size:.7rem; color:var(--text-sub); font-family:var(--font-mono); }
+.reward{
+  display:none; margin-top:1rem; padding:.85rem .9rem; border:1px solid rgba(15,157,88,.35);
+  background:rgba(15,157,88,.06);
+}
+.reward.on{ display:block; }
+.reward__row{ display:flex; align-items:baseline; justify-content:space-between; gap:.6rem; }
+.reward__label{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:#0f7a45; }
+.reward__amt{ font-size:1.3rem; font-weight:600; letter-spacing:-.02em; }
+.reward__note{ margin-top:.3rem; font-size:.78rem; color:var(--text-sub); line-height:1.5; }
+.reward button{ margin-top:.7rem; width:100%; background:var(--green); color:#fff; border:none; padding:.75rem; font-weight:600; }
+.reward button:hover{ filter:brightness(1.07); }
+.reward button:disabled{ opacity:.5; }
+.footer{ border-top:1px solid var(--line); padding:1.4rem var(--pad-x) 2.5rem; color:var(--text-sub); font-size:.8rem; line-height:1.6; }
+.footer a{ color:var(--blue); }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="brand" href="/"><img class="brand__mark" src="/assets/logo-512.png" alt="" width="22" height="22" /><span>Winternitz</span></a>
+  <nav class="header__nav">
+    <a href="#solutions">Uses</a><a href="#roadmap">Roadmap</a><a href="#board">Board</a><a href="/#versus">Why it holds</a><a href="/#proof">Proof</a>
+  </nav>
+  <span class="header__spacer"></span>
+  <button class="btn btn--ghost" id="connect">Connect wallet</button>
+  <button class="btn" data-open-create>Create token</button>
+</header>
+
+<section class="hero">
+  <span class="hero__kicker">The first quantum-protection launchpad on Solana</span>
+  <h1 class="hero__title">Launch anything quantum-proof on Solana.</h1>
+  <p class="hero__sub">
+    Free to launch, on a curve you already know. Underneath, the address that collects the
+    money answers to a one-time hash-based signature instead of a private key, and every
+    launch lands on an address ending in <b>QUANT</b>.
+  </p>
+  <div class="hero__actions">
+    <button class="btn btn--big" data-open-create>Launch your token</button>
+    <a class="btn btn--ghost btn--big" href="/#versus">How it beats a normal token</a>
+  </div>
+  <div class="hero__stats">
+    <div class="hero__stat"><b>Free</b><span>to create</span></div>
+    <div class="hero__stat"><b id="s-thr">5 SOL</b><span>to graduate</span></div>
+    <div class="hero__stat"><b>1.5%</b><span>fee · 0.4% to you</span></div>
+    <div class="hero__stat"><b>100%</b><span>liquidity locked</span></div>
+  </div>
+</section>
+
+
+<section class="board" id="solutions" style="padding-block:1rem clamp(2rem,4vh,3rem)">
+  <h2 style="font-weight:600;letter-spacing:-.02em;font-size:clamp(1.4rem,calc(1rem + 1.4vw),2rem);margin-bottom:.4rem">One vault, five ways to use it.</h2>
+  <p style="color:var(--ink-muted);max-width:64ch;line-height:1.6;margin-bottom:1.5rem">
+    The Winternitz vault is a general-purpose signer that runs any Solana instruction behind
+    a signature no quantum computer can forge. Every option below is the same vault with a
+    different job.
+  </p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,17rem),1fr))">
+    <article class="card">
+      <div class="card__name">Quantum token <span class="pill pill--q">live</span></div>
+      <p class="card__desc">Bonding curve, locked pool at graduation, fees behind the vault. What most people are here for.</p>
+      <a class="card__buy" data-open-create>Launch a token &rarr;</a>
+    </article>
+    <article class="card">
+      <div class="card__name">Quantum-safe wallet <span class="pill pill--q">live</span></div>
+      <p class="card__desc">A vault only you control. The 24 words are generated on your device and never touch a server. Send SOL to the address like any wallet.</p>
+      <a class="card__buy" data-open-wallet>Generate &rarr;</a>
+    </article>
+    <article class="card">
+      <div class="card__name">DAO signer <span class="pill">soon</span></div>
+      <p class="card__desc">Multisig replacement. Every proposal signs once with a hash key that dies on use. No stolen seed can ever vote for the DAO again.</p>
+      <span class="card__buy" style="color:var(--text-sub)">Waitlist</span>
+    </article>
+    <article class="card">
+      <div class="card__name">Treasury vault <span class="pill">soon</span></div>
+      <p class="card__desc">Cold storage for years or decades. Move funds only with a fresh signature. Nothing to steal off a laptop, nothing to phish out of an inbox.</p>
+      <span class="card__buy" style="color:var(--text-sub)">Waitlist</span>
+    </article>
+    <article class="card">
+      <div class="card__name">Upgrade authority <span class="pill">soon</span></div>
+      <p class="card__desc">Hand your program upgrade key to a vault. A quantum break of Solana still leaves your contract standing.</p>
+      <span class="card__buy" style="color:var(--text-sub)">Waitlist</span>
+    </article>
+  </div>
+</section>
+
+<section class="board" id="roadmap" style="padding-block:1rem clamp(2rem,4vh,3rem)">
+  <h2 style="font-weight:600;letter-spacing:-.02em;font-size:clamp(1.4rem,calc(1rem + 1.4vw),2rem);margin-bottom:.4rem">What we are building next.</h2>
+  <p style="color:var(--ink-muted);max-width:64ch;line-height:1.6;margin-bottom:1.5rem">
+    Every step is the same vault, wearing a different hat. No dates, because we ship when it
+    works. In order of what we hit first.
+  </p>
+  <ol style="list-style:none;padding:0;margin:0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)">
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">01 &middot; next</span>
+      <div><b>Quantum-safe wallet with in-browser signing.</b> Generate the 24 words, sign transfers straight from the web, watch the key rotate on chain. A Phantom that a quantum computer cannot empty.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">02</span>
+      <div><b>DAO signer.</b> Replace a multisig with a rotating hash key. Every proposal signs once and the key that voted it dies. A stolen seed cannot vote for the DAO ever again.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">03</span>
+      <div><b>Treasury vault for projects.</b> Put a project treasury behind the vault instead of a hot wallet. Movements need a fresh signature; nothing on a laptop can drain it.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">04</span>
+      <div><b>Upgrade authority as a service.</b> Any Solana program can hand its upgrade key to a vault. Your contract survives a quantum break of the whole chain.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">05</span>
+      <div><b>Time-locked vaults.</b> Vest a founder allocation or a partner grant behind a schedule that only the vault can unlock. No hot key that anyone can compromise midway through.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">06</span>
+      <div><b>NFT custody for collectors.</b> Send a Metaplex asset to a vault. It stays there until a one-time signature moves it. Wallet drainers stop working.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">07</span>
+      <div><b>Signed messages under Winternitz.</b> Sign a note with a key that cannot be forged. A message from a project years from now still verifies as theirs.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">08</span>
+      <div><b>Our own curve, immutable.</b> Replace the Meteora curve with one whose upgrade key is burned. The last elliptic-curve key in the whole stack disappears. Audited before it ships, because there are no second chances with immutable code.</div>
+    </li>
+    <li style="background:var(--surface);padding:1rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.6rem 1rem">
+      <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--blue)">09</span>
+      <div><b>Winternitz SDK.</b> A library any Solana project can drop in to put their own mint, treasury or upgrade key behind the vault. Everyone on Solana gets to skip the quantum apocalypse.</div>
+    </li>
+  </ol>
+</section>
+
+<div class="modal" id="wallet">
+  <div class="modal__veil" data-close-wallet></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+    <h2 class="modal__title" id="wTitle">Generate a quantum-safe wallet</h2>
+    <p class="modal__sub">
+      Runs in this browser. Nothing is sent to us, nothing is stored on our side. Save the
+      words on paper or in a password manager and close this tab. Whoever holds them controls
+      the vault.
+    </p>
+    <div class="note" style="border-left:2px solid var(--blue)">
+      <b>Read this once, then generate.</b> These 24 words are the master seed of a Winternitz
+      vault. Losing them means the vault is frozen forever, and nobody, ourselves included,
+      can recover it. That is the whole point. Grover would need more guesses than there are
+      atoms in the observable universe to brute-force one of them.
+    </div>
+    <div class="field" id="w-out" style="display:none">
+      <span>Your 24 words</span>
+      <textarea id="w-words" rows="4" readonly style="font-family:var(--font-mono);font-size:.95rem"></textarea>
+    </div>
+    <div class="field" id="w-addr-wrap" style="display:none">
+      <span>Vault address on Solana</span>
+      <div class="ca"><code id="w-addr"></code><button id="w-copy">Copy</button></div>
+    </div>
+    <div class="status" id="w-status"></div>
+    <button class="btn btn--big btn--wide" id="w-generate">Generate now</button>
+    <div class="hero__actions"><button class="btn btn--ghost btn--wide" data-close-wallet>Close</button></div>
+  </div>
+</div>
+
+<section class="board" id="board">
+  <div class="board__bar">
+    <button class="tab" role="tab" aria-selected="true" data-filter="all">All</button>
+    <button class="tab" role="tab" aria-selected="false" data-filter="soon">Graduating soon</button>
+    <button class="tab" role="tab" aria-selected="false" data-filter="new">New</button>
+    <button class="tab" role="tab" aria-selected="false" data-filter="done">Graduated</button>
+    <input class="search" type="search" placeholder="Search name, ticker or address" aria-label="Search" />
+  </div>
+  <div class="grid" id="grid">
+    <div class="empty">Reading the chain…</div>
+  </div>
+</section>
+
+<div class="modal" id="create">
+  <div class="modal__veil" data-close-create></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="createTitle">
+    <h2 class="modal__title" id="createTitle">Launch a quantum-protected token</h2>
+    <p class="modal__sub">Free. Your wallet pays the network fee and signs. Nothing else.</p>
+
+    <div class="grid2">
+      <label class="field"><span>Name</span><input id="f-name" maxlength="32" placeholder="Quantum Cat" /></label>
+      <label class="field"><span>Ticker</span><input id="f-symbol" maxlength="10" placeholder="QCAT" /></label>
+    </div>
+    <label class="field"><span>Description</span><textarea id="f-desc" rows="2" maxlength="500" placeholder="What is it?"></textarea></label>
+
+    <input type="file" id="f-file" accept="image/*" hidden />
+    <div class="drop" id="drop">
+      <img class="drop__preview" id="preview" alt="" />
+      <span class="drop__text"><b>Add an image</b>Any size, any shape. It gets squared and scaled to 512×512 for you.</span>
+    </div>
+
+    <div class="grid2">
+      <label class="field"><span>X / Twitter</span><input id="f-x" placeholder="https://x.com/…" /></label>
+      <label class="field"><span>Website</span><input id="f-web" placeholder="https://…" /></label>
+    </div>
+    <label class="field"><span>Telegram</span><input id="f-tg" placeholder="https://t.me/…" /></label>
+
+    <label class="field"><span>Buy your own token at launch (optional)</span>
+      <input id="f-firstbuy" type="number" min="0" step="any" placeholder="0.0 SOL" inputmode="decimal" /></label>
+
+    <div class="note">
+      <b>What you get.</b> An address ending in QUANT. A curve that graduates into a pool whose
+      liquidity is locked forever. 0.4% of every trade, in SOL. <b>What nobody gets:</b> the
+      ability to mint more later, or to pull the liquidity. Not the team, not us.
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="hero__actions">
+      <button class="btn btn--big btn--wide" id="submit">Connect wallet to launch</button>
+    </div>
+    <div class="hero__actions"><button class="btn btn--ghost btn--wide" data-close-create>Close</button></div>
+  </div>
+</div>
+
+
+<div class="modal" id="token">
+  <div class="modal__veil" data-close-token></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="tkName">
+    <div class="panel__head">
+      <img class="avatar" id="tk-img" alt="" />
+      <div style="min-width:0">
+        <div class="panel__title" id="tkName">, </div>
+        <div class="ticker" id="tk-sym"></div>
+      </div>
+    </div>
+
+    <div class="ca">
+      <code id="tk-ca"></code>
+      <button id="tk-copy">Copy</button>
+    </div>
+
+    <div class="meter" style="margin-top:.9rem">
+      <div class="meter__row"><span id="tk-state">bonding curve</span><span id="tk-raised"></span></div>
+      <div class="meter__track"><div class="meter__fill" id="tk-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="trade">
+      <div class="trade__tabs">
+        <button class="trade__tab" id="tab-buy" aria-selected="true">Buy</button>
+        <button class="trade__tab" id="tab-sell" aria-selected="false">Sell</button>
+      </div>
+      <div class="trade__body">
+        <div class="trade__input">
+          <input id="tk-amt" type="number" min="0" step="any" placeholder="0.0" inputmode="decimal" />
+          <span id="tk-unit">SOL</span>
+        </div>
+        <div class="bal"><span>Balance</span><b id="tk-bal">, </b></div>
+        <input class="slider" id="tk-slider" type="range" min="0" max="100" value="0" step="1" aria-label="Percentage of your balance" />
+        <div class="slider__marks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>MAX</span></div>
+        <div class="chips" id="tk-chips"></div>
+        <div class="trade__out" id="tk-out"></div>
+        <button class="btn btn--big btn--wide" id="tk-go">Connect wallet</button>
+      </div>
+    </div>
+
+    <div class="migrating" id="migrating">
+      <b>Curve complete. Migration in progress.</b><br />
+      Every token has been sold on the curve, so there is nothing left to buy here, and the
+      pool it moves into does not exist yet. Trading reopens on its own in a minute or two,
+      with the liquidity locked forever. Nothing is stuck and nothing is lost.
+    </div>
+
+    <div class="reward" id="reward">
+      <div class="reward__row">
+        <span class="reward__label">Your creator fees</span>
+        <span class="reward__amt" id="rw-amt">0 SOL</span>
+      </div>
+      <p class="reward__note">0.4% of every trade on your token. It keeps accruing, and it is
+        yours whether you take it now or in a year.</p>
+      <button id="rw-go">Claim</button>
+    </div>
+
+    <div class="socials" id="tk-socials" style="margin-top:.9rem"></div>
+    <div class="status" id="tk-status"></div>
+    <div class="hero__actions">
+      <a class="btn btn--ghost btn--wide" id="tk-explorer" target="_blank" rel="noopener">View on explorer</a>
+    </div>
+    <div class="hero__actions"><button class="btn btn--ghost btn--wide" data-close-token>Close</button></div>
+  </div>
+</div>
+
+<footer class="footer">
+  Curve, pool and migration are Meteora's Dynamic Bonding Curve, unchanged. What is ours is the
+  vault that holds the fees. <a href="/#versus">See how it compares to a normal token</a>.
+  <span id="build" style="opacity:.5">build 15:30Z</span>
+</footer>
+
+<script type="module">
+import { Transaction, VersionedTransaction } from "https://esm.sh/@solana/web3.js@1.98.0";
+
+const $ = (id) => document.getElementById(id);
+const provider = () => window.phantom?.solana ?? (window.solana?.isPhantom ? window.solana : null);
+let wallet = null;
+let imageData = null;
+
+/* ------------------------------ wallet ------------------------------ */
+async function connect() {
+  const p = provider();
+  if (!p) { window.open("https://phantom.app/", "_blank"); return; }
+  const { publicKey } = await p.connect();
+  wallet = publicKey.toBase58();
+  const short = wallet.slice(0, 4) + "…" + wallet.slice(-4);
+  $("connect").textContent = short;
+  $("submit").textContent = "Launch token";
+}
+$("connect").addEventListener("click", () => connect().catch((e) => setStatus(e.message, "err")));
+
+/* --------------------------- image handling --------------------------- */
+/* Squared and resized in the page. Asking a user for exact proportions is a
+   chore, and every one of them would get it wrong anyway. */
+async function processImage(file) {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const sx = (bitmap.width - side) / 2;
+  const sy = (bitmap.height - side) / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, 512, 512);
+
+  // Step the quality down until it fits comfortably in a request body.
+  for (const q of [0.92, 0.8, 0.65, 0.5]) {
+    const url = canvas.toDataURL("image/jpeg", q);
+    if (url.length < 380_000) return url;
+  }
+  return canvas.toDataURL("image/jpeg", 0.4);
+}
+
+$("drop").addEventListener("click", () => $("f-file").click());
+$("f-file").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    imageData = await processImage(file);
+    $("preview").src = imageData;
+    setStatus("");
+  } catch { setStatus("no se pudo leer esa imagen", "err"); }
+});
+["dragover", "dragleave", "drop"].forEach((ev) => {
+  $("drop").addEventListener(ev, async (e) => {
+    e.preventDefault();
+    $("drop").classList.toggle("is-over", ev === "dragover");
+    if (ev !== "drop") return;
+    const file = e.dataTransfer?.files?.[0];
+    if (file) { imageData = await processImage(file); $("preview").src = imageData; }
+  });
+});
+
+const setStatus = (msg, cls = "") => { const s = $("status"); s.textContent = msg; s.className = "status " + cls; };
+
+/* ------------------------------ launching ------------------------------ */
+$("submit").addEventListener("click", async () => {
+  try {
+    if (!wallet) return connect();
+    const body = {
+      name: $("f-name").value, symbol: $("f-symbol").value, description: $("f-desc").value,
+      image: imageData, creator: wallet,
+      firstBuy: parseFloat($("f-firstbuy").value) || 0,
+      links: { twitter: $("f-x").value, website: $("f-web").value, telegram: $("f-tg").value },
+    };
+    if (!body.name.trim() || !body.symbol.trim()) return setStatus("falta el nombre o el ticker", "err");
+
+    $("submit").disabled = true;
+    setStatus("preparando el lanzamiento…");
+    const r = await fetch("/api/create-token", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error ?? "fallo del servidor");
+
+    setStatus(`firma en tu wallet · ${j.mint}`);
+    const tx = Transaction.from(Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0)));
+    const { signature } = await provider().signAndSendTransaction(tx);
+    setStatus(`lanzado: ${signature}`, "ok");
+    setTimeout(() => { $("create").removeAttribute("open"); load(); }, 1800);
+  } catch (e) {
+    setStatus(e.message ?? String(e), "err");
+  } finally {
+    $("submit").disabled = false;
+  }
+});
+
+/* -------------------------------- board -------------------------------- */
+let rows = [], filter = "all", query = "";
+
+const icon = (k) => k === "x"
+  ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.4 8.5L23 22h-6.8l-5.3-6.9L4.8 22H1.7l7.9-9.1L1 2h7l4.8 6.3L18.9 2Zm-1.1 18h1.7L7.3 3.8H5.5L17.8 20Z"/></svg>'
+  : k === "web"
+  ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>'
+  : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 20c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1l-4.8-1.5c-1-.3-1-1 .2-1.5l18.8-7.2c.9-.3 1.6.2 1.3 1.4Z"/></svg>';
+
+const esc = (s) => String(s ?? "").replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+
+function card(t) {
+  const pct = Math.round((t.progress ?? 0) * 100);
+  const sym = t.symbol || t.mint.slice(0, 2);
+  const avatar = t.image
+    ? `<img class="avatar" src="${esc(t.image)}" alt="" loading="lazy" />`
+    : `<div class="avatar">${esc(sym.slice(0, 2)).toUpperCase()}</div>`;
+  let socials = "";
+  if (t.twitter) socials += `<a href="${esc(t.twitter)}" target="_blank" rel="noopener" aria-label="X">${icon("x")}</a>`;
+  if (t.website) socials += `<a href="${esc(t.website)}" target="_blank" rel="noopener" aria-label="Website">${icon("web")}</a>`;
+  if (t.telegram) socials += `<a href="${esc(t.telegram)}" target="_blank" rel="noopener" aria-label="Telegram">${icon("tg")}</a>`;
+
+  return `<article class="card" data-mint="${esc(t.mint)}">
+    <div class="card__top">${avatar}
+      <div class="card__id">
+        <div class="card__name">${esc(t.name || "Unnamed")} <span class="ticker">$${esc(sym)}</span>
+          ${t.status === "graduated" ? '<span class="pill pill--grad">graduated</span>'
+            : t.status === "migrating" ? '<span class="pill pill--mig">migrating</span>'
+            : '<span class="pill pill--q">quantum vault</span>'}
+        </div>
+        <div class="card__mint">${esc(t.mint.slice(0, 6))}…<b>${esc(t.mint.slice(-5))}</b></div>
+      </div>
+    </div>
+    <div class="meter">
+      <div class="meter__row"><span>${t.status === "graduated" ? "graduated"
+        : t.status === "migrating" ? "curve complete · migrating" : "bonding curve"}</span>
+        <span>${(t.raised ?? 0).toFixed(2)} / ${t.threshold} SOL</span></div>
+      <div class="meter__track"><div class="meter__fill${t.migrated ? " meter__fill--done" : ""}" style="width:${pct}%"></div></div>
+    </div>
+    <div class="card__foot">
+      <div class="socials">${socials}</div>
+      <span class="card__buy">Buy →</span>
+    </div>
+  </article>`;
+}
+
+let lastPaint = "";
+
+function render(force) {
+  const q = query.toLowerCase();
+  const shown = rows.filter((t) => {
+    const state = t.migrated ? "done" : (t.progress >= 0.5 ? "soon" : "new");
+    if (filter !== "all" && filter !== state) return false;
+    if (!q) return true;
+    return [t.name, t.symbol, t.mint].some((v) => String(v ?? "").toLowerCase().includes(q));
+  });
+
+  // Repainting the whole grid on every poll made the cards blink out and back
+  // every few seconds. Only touch the DOM when something actually changed.
+  const paint = filter + "|" + q + "|" + shown.map((t) =>
+    `${t.mint}:${(t.raised ?? 0).toFixed(4)}:${t.status}:${t.name ?? ""}`).join(",");
+  if (!force && paint === lastPaint) return;
+  lastPaint = paint;
+
+  $("grid").innerHTML = shown.length
+    ? shown.map(card).join("")
+    : `<div class="empty"><b>${rows.length ? "Nothing matches that." : "No tokens yet."}</b>
+        ${rows.length ? "" : "Be the first. Launching is free and takes one signature."}</div>`;
+}
+
+let loaded = false;
+
+async function load() {
+  try {
+    const r = await fetch("/api/tokens", { cache: "no-store" });
+    const j = await r.json();
+    const fresh = j.tokens ?? [];
+    // A hiccup on the RPC used to wipe the board and show "no tokens yet".
+    // Keeping the last good list beats a page that looks like it lost everything.
+    if (fresh.length || !loaded) { rows = fresh; loaded = true; }
+    if (rows[0]?.threshold) $("s-thr").textContent = rows[0].threshold + " SOL";
+  } catch {
+    if (!loaded) rows = [];
+  }
+
+  if (current && panel.hasAttribute("open")) {
+    const fresh = rows.find((t) => t.mint === current.mint);
+    if (fresh) {
+      current = fresh;
+      $("tk-raised").textContent = `${(fresh.raised ?? 0).toFixed(2)} / ${fresh.threshold} SOL`;
+      $("tk-fill").style.width = Math.round((fresh.progress ?? 0) * 100) + "%";
+      $("tk-state").textContent = fresh.status === "graduated" ? "graduated · trading in the pool"
+        : fresh.status === "migrating" ? "curve complete · migrating" : "bonding curve";
+      applyMigrating(fresh);
+      refreshReward();
+    }
+  }
+  render();
+}
+
+document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((o) => o.setAttribute("aria-selected", String(o === b)));
+  filter = b.dataset.filter; render(true);
+}));
+document.querySelector(".search").addEventListener("input", (e) => { query = e.target.value; render(true); });
+
+const modal = $("create");
+document.querySelectorAll("[data-open-create]").forEach((b) => b.addEventListener("click", () => modal.setAttribute("open", "")));
+document.querySelectorAll("[data-close-create]").forEach((b) => b.addEventListener("click", () => modal.removeAttribute("open")));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.removeAttribute("open"); });
+
+
+/* --------------------------- token panel --------------------------- */
+/* Eddy's three complaints, in order: you could not buy here, there was no
+   panel, and there was no way to copy the address. All three were the same
+   omission: a card that goes somewhere else instead of opening. */
+let current = null, side = "buy";
+
+const panel = $("token");
+document.querySelectorAll("[data-close-token]").forEach((b) =>
+  b.addEventListener("click", () => panel.removeAttribute("open")));
+
+function openToken(mint) {
+  const t = rows.find((r) => r.mint === mint);
+  if (!t) return;
+  current = t;
+  side = "buy";
+  $("tkName").textContent = t.name || "Unnamed";
+  $("tk-sym").textContent = "$" + (t.symbol || "");
+  $("tk-ca").textContent = t.mint;
+  $("tk-img").src = t.image || "/assets/logo-512.png";
+  $("tk-state").textContent = t.status === "graduated" ? "graduated · trading in the pool"
+    : t.status === "migrating" ? "curve complete · migrating" : "bonding curve";
+  applyMigrating(t);
+  $("tk-raised").textContent = `${(t.raised ?? 0).toFixed(2)} / ${t.threshold} SOL`;
+  $("tk-fill").style.width = Math.round((t.progress ?? 0) * 100) + "%";
+  $("tk-fill").className = "meter__fill" + (t.migrated ? " meter__fill--done" : "");
+  $("tk-explorer").href = `https://explorer.solana.com/address/${t.mint}`;
+  let soc = "";
+  if (t.twitter) soc += `<a href="${esc(t.twitter)}" target="_blank" rel="noopener">${icon("x")}</a>`;
+  if (t.website) soc += `<a href="${esc(t.website)}" target="_blank" rel="noopener">${icon("web")}</a>`;
+  if (t.telegram) soc += `<a href="${esc(t.telegram)}" target="_blank" rel="noopener">${icon("tg")}</a>`;
+  $("tk-socials").innerHTML = soc;
+  setSide("buy");
+  refreshReward();
+  loadBalance();
+  $("tk-status").textContent = "";
+  $("tk-amt").value = "";
+  panel.setAttribute("open", "");
+}
+
+function setSide(s) {
+  side = s;
+  $("tab-buy").setAttribute("aria-selected", String(s === "buy"));
+  $("tab-sell").setAttribute("aria-selected", String(s === "sell"));
+  $("tk-unit").textContent = s === "buy" ? "SOL" : (current?.symbol || "tokens");
+  $("tk-chips").innerHTML = (s === "buy" ? [0.1, 0.5, 1, 5] : [1000, 10000, 100000])
+    .map((v) => `<button class="chip" data-amt="${v}">${v}</button>`).join("");
+  $("tk-chips").querySelectorAll(".chip").forEach((c) =>
+    c.addEventListener("click", () => { $("tk-amt").value = c.dataset.amt; }));
+  $("tk-go").textContent = wallet ? (s === "buy" ? "Buy" : "Sell") : "Connect wallet";
+  if (current) applyMigrating(current);
+  $("tk-out").textContent = "";
+  $("tk-slider").value = 0;
+  showBalance();
+}
+$("tab-buy").addEventListener("click", () => setSide("buy"));
+$("tab-sell").addEventListener("click", () => setSide("sell"));
+
+$("tk-copy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(current.mint);
+    $("tk-copy").textContent = "Copied";
+    setTimeout(() => ($("tk-copy").textContent = "Copy"), 1500);
+  } catch {
+    // Clipboard is blocked in some in-app browsers; selecting it is the fallback.
+    const r = document.createRange();
+    r.selectNodeContents($("tk-ca"));
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+  }
+});
+
+$("tk-go").addEventListener("click", async () => {
+  const st = $("tk-status");
+  const say = (m, c = "") => { st.textContent = m; st.className = "status " + c; };
+  try {
+    if (!wallet) { await connect(); setSide(side); return; }
+    const amount = parseFloat($("tk-amt").value);
+    if (!(amount > 0)) return say("pon un importe", "err");
+
+    $("tk-go").disabled = true;
+    say("preparando…");
+    const r = await fetch("/api/swap", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mint: current.mint, amount, side, wallet }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error ?? "no se pudo preparar");
+
+    const bytes = Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0));
+    const tx = j.versioned ? VersionedTransaction.deserialize(bytes) : Transaction.from(bytes);
+    say("firma en tu wallet…");
+    const { signature } = await provider().signAndSendTransaction(tx);
+    say(`hecho: ${signature.slice(0, 24)}…`, "ok");
+    setTimeout(load, 2500);
+  } catch (e) {
+    say(e.message ?? String(e), "err");
+  } finally {
+    $("tk-go").disabled = false;
+  }
+});
+
+
+
+/* A completed curve cannot be traded until it migrates. Saying so and taking
+   the button away beats letting someone sign a transaction that will fail. */
+function applyMigrating(t) {
+  const on = t.status === "migrating";
+  $("migrating").classList.toggle("on", on);
+  $("tk-go").disabled = on;
+  if (on) $("tk-go").textContent = "Migrating, back in a moment";
+  else if (wallet) $("tk-go").textContent = side === "buy" ? "Buy" : "Sell";
+}
+
+/* --------------------------- balances --------------------------- */
+/* Asking for an amount without showing what someone holds is how you get
+   rejected transactions. The slider spends a percentage of the real balance. */
+let bal = { sol: 0, token: 0 };
+
+async function loadBalance() {
+  if (!wallet || !current) { $("tk-bal").textContent = ", "; return; }
+  try {
+    const r = await fetch(`/api/balance?wallet=${wallet}&mint=${current.mint}`);
+    bal = await r.json();
+  } catch { bal = { sol: 0, token: 0 }; }
+  showBalance();
+}
+
+function showBalance() {
+  const unit = side === "buy" ? "SOL" : (current?.symbol || "tokens");
+  const v = side === "buy" ? bal.sol : bal.token;
+  $("tk-bal").textContent = `${v.toLocaleString(undefined, { maximumFractionDigits: side === "buy" ? 4 : 0 })} ${unit}`;
+}
+
+$("tk-slider").addEventListener("input", (e) => {
+  const pct = Number(e.target.value) / 100;
+  const max = side === "buy" ? Math.max(0, bal.sol - 0.02) : bal.token; // leave gas
+  const v = max * pct;
+  $("tk-amt").value = v ? (side === "buy" ? v.toFixed(4) : Math.floor(v)) : "";
+});
+
+/* ---------------------- creator rewards ---------------------- */
+/* The fee was accruing with no way to take it out, which Eddy found before
+   any creator did. Shown only to the wallet that actually launched it. */
+function refreshReward() {
+  const box = $("reward");
+  const mine = wallet && current && current.creator === wallet;
+  box.classList.toggle("on", Boolean(mine));
+  if (!mine) return;
+  const amt = current.creatorFee ?? 0;
+  $("rw-amt").textContent = amt.toFixed(4) + " SOL";
+  $("rw-go").disabled = !(amt > 0);
+  $("rw-go").textContent = amt > 0 ? "Claim " + amt.toFixed(4) + " SOL" : "Nothing to claim yet";
+}
+
+$("rw-go").addEventListener("click", async () => {
+  const st = $("tk-status");
+  const say = (m, c = "") => { st.textContent = m; st.className = "status " + c; };
+  try {
+    $("rw-go").disabled = true;
+    say("preparando el cobro…");
+    const r = await fetch("/api/claim-creator", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mint: current.mint, wallet }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error ?? "no se pudo preparar");
+    if (!j.transaction) { say("todavia no hay nada que cobrar"); return; }
+    const tx = Transaction.from(Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0)));
+    say("firma en tu wallet…");
+    const { signature } = await provider().signAndSendTransaction(tx);
+    say(`cobrado: ${signature.slice(0, 24)}…`, "ok");
+    setTimeout(load, 3000);
+  } catch (e) {
+    say(e.message ?? String(e), "err");
+  } finally {
+    $("rw-go").disabled = false;
+  }
+});
+
+$("grid").addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (card?.dataset.mint) openToken(card.dataset.mint);
+});
+
+load();
+
+/* ---------------------- quantum-safe wallet ---------------------- */
+document.querySelectorAll("[data-open-wallet]").forEach(function (b) {
+  b.addEventListener("click", function () { document.getElementById("wallet").setAttribute("open", ""); });
+});
+document.querySelectorAll("[data-close-wallet]").forEach(function (b) {
+  b.addEventListener("click", function () { document.getElementById("wallet").removeAttribute("open"); });
+});
+
+document.getElementById("w-generate").addEventListener("click", async function () {
+  var st = document.getElementById("w-status");
+  var say = function (m, c) { st.textContent = m; st.className = "status " + (c || ""); };
+  try {
+    say("Generating on this device...");
+    var bip = await import("https://esm.sh/@scure/bip39@1.3.0");
+    var wl  = await import("https://esm.sh/@scure/bip39@1.3.0/wordlists/english");
+    var sdk = await import("https://esm.sh/@solana/web3.js@1.98.0");
+    var sha = await import("https://esm.sh/@noble/hashes@1.7.1/sha3");
+
+    var words = bip.generateMnemonic(wl.wordlist, 256);
+    var seed  = (await bip.mnemonicToSeed(words)).slice(0, 32);
+
+    var enc = new TextEncoder();
+    var N = 24, CHAINS = 34;
+    function step(i, v) { var b = new Uint8Array(1 + N); b[0] = i; b.set(v, 1); return sha.keccak_256(b).slice(0, N); }
+    function secret(i) {
+      var buf = new Uint8Array(7 + 32 + 1);
+      buf.set(enc.encode("WNTR:SK"), 0); buf.set(seed, 7); buf[39] = i;
+      return sha.keccak_256(buf).slice(0, N);
+    }
+    var ends = new Uint8Array(CHAINS * N);
+    for (var i = 0; i < CHAINS; i++) {
+      var v = secret(i);
+      for (var k = 0; k < 255; k++) v = step(i, v);
+      ends.set(v, i * N);
+    }
+    var pk0 = sha.keccak_256(ends);
+    var vault = sdk.PublicKey.findProgramAddressSync(
+      [enc.encode("vault"), pk0],
+      new sdk.PublicKey("13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT")
+    )[0];
+
+    document.getElementById("w-words").value = words;
+    document.getElementById("w-addr").textContent = vault.toBase58();
+    document.getElementById("w-out").style.display = "block";
+    document.getElementById("w-addr-wrap").style.display = "block";
+    document.getElementById("w-generate").textContent = "Generated. Save the words.";
+    document.getElementById("w-generate").disabled = true;
+    say("Nothing was sent to us. Save the words and close the tab.", "ok");
+  } catch (e) { say(String(e && e.message || e), "err"); }
+});
+document.getElementById("w-copy").addEventListener("click", async function () {
+  try {
+    await navigator.clipboard.writeText(document.getElementById("w-addr").textContent);
+    document.getElementById("w-copy").textContent = "Copied";
+    setTimeout(function () { document.getElementById("w-copy").textContent = "Copy"; }, 1500);
+  } catch (e) {}
+});
+
+setInterval(() => load(), 8000);
+</script>
+</body>
+</html>

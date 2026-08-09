@@ -1,0 +1,1532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Winternitz, the first quantum-protection token on Solana</title>
+
+<link rel="icon" href="/assets/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" href="/assets/logo-512.png" sizes="512x512" />
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+<meta property="og:image" content="https://winternitz.io/assets/og.png" />
+<meta property="og:title" content="Winternitz, the first quantum-protection token on Solana" />
+<meta property="og:description" content="Supply, liquidity and fees behind keys a quantum computer cannot forge. Live on mainnet, every claim linked to a transaction." />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#fdfdfc;
+  --surface:#ffffff;
+  --ink:#0a0a0a;
+  --ink-muted:#4a4a4a;
+  --text-sub:#6e6e6e;
+  --line:#eaeaea;
+  --blue:#2340ff;
+  --blue-badge:#3a44b8;
+  --gray-block:#d9d9d9;
+
+  --font-sans:"Geist","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-body:var(--font-sans);
+  --font-mono:"Geist Mono","SF Mono",ui-monospace,monospace;
+
+  /* Fluid helper: ties type to BOTH axes so the composition keeps its
+     proportions in a fixed-height viewport, where vw alone would not. */
+  --fit:calc(0.5vw + 0.5vh);
+
+  --title:clamp(2.15rem, calc(1.55rem + 1.6vw + var(--fit)), 3.5rem);
+  --sub:clamp(0.85rem, calc(0.7rem + var(--fit)), 1.2rem);
+  --feat-heading:clamp(0.95rem, calc(0.75rem + 0.35vw + var(--fit)), 1.65rem);
+  --feat-title:clamp(0.8rem, calc(0.65rem + var(--fit)), 1.15rem);
+  --feat-body:clamp(0.72rem, calc(0.58rem + var(--fit)), 0.95rem);
+  --nav:clamp(0.75rem, calc(0.62rem + var(--fit)), 1.05rem);
+  --btn:clamp(0.85rem, calc(0.7rem + var(--fit)), 1.1rem);
+  --brand:clamp(0.85rem, calc(0.7rem + var(--fit)), 1.15rem);
+  --badge:clamp(0.55rem, calc(0.45rem + var(--fit)), 0.8rem);
+
+  --pad-x:clamp(1.15rem, calc(0.85rem + 1.2vw + var(--fit)), 3.5rem);
+  --pad-y:clamp(0.85rem, calc(0.55rem + 1.2vh + var(--fit)), 2.5rem);
+  --header-h:clamp(2.85rem, calc(2.4rem + 0.8vw + var(--fit)), 4rem);
+  --gutter-h:50px;
+  --frame-pad-b:50px;
+  --features-h:clamp(9.5rem, calc(7.25rem + 8vh), 12rem);
+
+  --btn-h:clamp(2.65rem, calc(2.2rem + 0.6vw + var(--fit)), 3.5rem);
+  --btn-pad-x:clamp(1.1rem, calc(0.9rem + 0.5vw + var(--fit)), 1.85rem);
+  --gap-btn:clamp(0.5rem, calc(0.35rem + 0.4vw + var(--fit)), 0.9rem);
+
+  --badge-h:clamp(1.45rem, calc(1.2rem + var(--fit)), 2rem);
+  --badge-pad-x:clamp(0.55rem, calc(0.45rem + 0.3vw + var(--fit)), 0.95rem);
+  --badge-r:clamp(6px, calc(4px + var(--fit)), 10px);
+  --dot:clamp(5px, calc(4px + var(--fit)), 8px);
+
+  --logo:clamp(1.05rem, calc(0.9rem + var(--fit)), 1.5rem);
+  --icon:1.45rem;
+
+  --feat-pad-x:clamp(0.85rem, calc(0.6rem + 0.6vw + var(--fit)), 1.6rem);
+  --feat-pad-y:clamp(0.85rem, calc(0.6rem + 0.8vh + var(--fit)), 1.5rem);
+
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+
+@media (min-width:1600px){
+  :root{ --title:clamp(3.6rem, calc(2.6rem + 2.6vw + 0.8vw + 0.8vh), 8rem); }
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{
+  /* body already clips, but the root element does not, and something inside
+     the grid still widens the scroll area. Clipping here is what actually
+     stops the page sliding sideways. */
+  overflow-x:hidden;
+}
+html,body{ min-height:100%; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  overflow-y:auto;               /* the hero still fills a screen; the proof lives under it */
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+a{ color:inherit; text-decoration:none; }
+h1,h2,h3,p{ margin:0; }
+button{ font:inherit; }
+
+/* ============================================================
+   FRAME + SHARED GRID
+   ============================================================ */
+.frame{
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--bg);
+  border-top:1px solid var(--line);
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+  /* No bottom border on purpose: the frame runs off the fold. */
+  padding-bottom:var(--frame-pad-b);
+}
+
+/* Left half is one content column, right half splits into four equal cells.
+   Header, hero and features all share it so every hairline lines up. */
+.row-grid{
+  display:grid;
+  grid-template-columns:minmax(0,4fr) repeat(4,minmax(0,1fr));
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header{
+  height:var(--header-h);
+  flex:0 0 auto;
+  opacity:0;
+  animation:reveal-fade .85s var(--ease) .04s forwards;
+}
+
+.header__brand{
+  display:flex;
+  align-items:center;
+  gap:clamp(0.45rem, calc(0.35rem + 0.3vw), 0.85rem);
+  padding:0 var(--pad-x);
+  border-right:1px solid var(--line);
+  min-width:0;
+}
+
+.header__logo{
+  width:var(--logo);
+  height:var(--logo);
+  flex:0 0 auto;
+  display:block;
+  object-fit:contain;
+}
+
+.header__word{
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:var(--brand);
+  letter-spacing:-0.025em;
+  line-height:1;
+  white-space:nowrap;
+}
+
+/* display:contents lets the four links become direct grid cells. */
+.header__menu{ display:contents; }
+
+.header__link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-sans);
+  font-weight:500;
+  font-size:var(--nav);
+  letter-spacing:-0.02em;
+  border-right:1px solid var(--line);
+  transition:background .2s var(--ease);
+  min-width:0;
+}
+.header__link:hover{ background:rgba(0,0,0,.035); }
+
+.header__link--cta{
+  background:var(--blue);
+  color:#fff;
+  border-right:none;
+  transition:background .2s var(--ease), box-shadow .28s var(--ease), filter .2s var(--ease);
+}
+.header__link--cta:hover{
+  background:#2f4aff;
+  filter:brightness(1.08);
+  box-shadow:0 8px 22px rgba(35,64,255,.28);
+}
+.header__link--cta:active{ box-shadow:0 4px 12px rgba(35,64,255,.2); }
+
+/* Burger: desktop hidden, mobile only */
+.burger{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:none;
+  border:none;
+  border-left:1px solid var(--line);
+  cursor:pointer;
+  padding:0;
+  width:var(--header-h);
+}
+.burger__box{ position:relative; width:18px; height:12px; }
+.burger__line{
+  position:absolute; left:0;
+  width:100%; height:1.5px;
+  background:var(--ink);
+  transition:transform .32s var(--ease), opacity .2s var(--ease), top .32s var(--ease);
+}
+.burger__line:nth-child(1){ top:0; }
+.burger__line:nth-child(2){ top:5.25px; }
+.burger__line:nth-child(3){ top:10.5px; }
+body.nav-open .burger__line:nth-child(1){ top:5.25px; transform:rotate(45deg); }
+body.nav-open .burger__line:nth-child(2){ opacity:0; }
+body.nav-open .burger__line:nth-child(3){ top:5.25px; transform:rotate(-45deg); }
+
+/* ============================================================
+   GUTTERS
+   ============================================================ */
+.gutter{
+  height:var(--gutter-h);
+  flex:0 0 auto;
+  background:var(--bg);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  opacity:0;
+  animation:reveal-fade .85s var(--ease) .1s forwards;
+}
+
+/* Carries the hero's vertical split through the strip so the column
+   hairline reads as one uninterrupted line down the page. */
+.gutter--features{
+  position:relative;
+  animation-delay:.55s;
+}
+.gutter--features::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  bottom:-1px;
+  left:calc(100% / 8 * 4);
+  width:1px;
+  background:var(--line);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  flex:1 1 auto;
+  min-height:0;
+}
+
+.hero__content{
+  grid-column:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  padding:var(--pad-y) var(--pad-x);
+  border-right:1px solid var(--line);
+  min-width:0;
+  gap:clamp(0.75rem, calc(0.5rem + 1.1vh + var(--fit)), 1.75rem);
+}
+
+/* --- badge --- */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:clamp(0.4rem, calc(0.3rem + 0.25vw), 0.6rem);
+  height:var(--badge-h);
+  padding:0 var(--badge-pad-x);
+  background:var(--surface);
+  border-radius:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  opacity:0;
+  animation:badge-in .8s var(--ease) .12s forwards;
+}
+.badge__dot{
+  width:var(--dot);
+  height:var(--dot);
+  border-radius:50%;
+  background:var(--blue);
+  flex:0 0 auto;
+  animation:badge-pulse 2.2s ease-in-out infinite;
+}
+.badge__text::after{
+  content:"_";
+  animation:caret 1s steps(1) infinite;
+}
+@keyframes caret{ 50%{ opacity:0 } }
+.badge__text{
+  font-family:var(--font-mono);
+  font-weight:500;
+  font-size:var(--badge);
+  letter-spacing:.06em;
+  color:var(--blue-badge);
+  white-space:nowrap;
+}
+
+/* --- headline --- */
+.hero__title{
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:var(--title);
+  line-height:1.05;
+  letter-spacing:-0.035em;
+  max-width:12em;
+}
+.hero__title .line{ display:block; }
+.hero__title .line--muted{ color:var(--ink-muted); }
+.hero__title .line--strong{ color:var(--ink); }
+
+/* Caret only while a line is actively typing. */
+.line.is-typing::after{
+  content:"";
+  display:inline-block;
+  width:.06em;
+  height:.85em;
+  background:currentColor;
+  margin-left:.04em;
+  vertical-align:-0.08em;
+  animation:caret-blink .85s steps(1) infinite;
+}
+
+/* --- subcopy --- */
+.hero__sub{
+  font-family:var(--font-body);
+  font-weight:400;
+  font-size:var(--sub);
+  line-height:1.5;
+  letter-spacing:-0.012em;
+  color:var(--text-sub);
+  opacity:0;
+  animation:reveal-rise .9s var(--ease) 1.85s forwards;
+}
+
+/* --- actions --- */
+.hero__actions{
+  display:flex;
+  gap:var(--gap-btn);
+  flex-wrap:wrap;
+  opacity:0;
+  animation:reveal-up .85s var(--ease) 2.05s forwards;
+}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:var(--btn-h);
+  padding:0 var(--btn-pad-x);
+  font-family:var(--font-sans);
+  font-weight:500;
+  font-size:var(--btn);
+  letter-spacing:-0.015em;
+  border-radius:0;
+  cursor:pointer;
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .2s var(--ease);
+  opacity:0;
+  animation:btn-pop .7s var(--ease) forwards;
+}
+.btn--primary{
+  background:#000;
+  color:#fff;
+  border:1px solid #000;
+  animation-delay:2.1s;
+}
+.btn--primary:hover{
+  background:#111;
+  transform:translateY(-3px);
+  box-shadow:0 12px 28px rgba(0,0,0,.22);
+}
+.btn--ghost{
+  background:#fff;
+  color:#000;
+  border:1px solid #000;
+  animation-delay:2.22s;
+}
+.btn--ghost:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 28px rgba(0,0,0,.12);
+}
+
+/* --- visual --- */
+.hero__visual{
+  grid-column:2 / -1;
+  position:relative;
+  height:100%;
+  background:var(--gray-block);
+  overflow:hidden;
+  opacity:0;
+  animation:reveal-visual 1.15s var(--ease) .2s forwards;
+}
+.hero__video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+/* Both loops keep playing; hover only crossfades the top one in. */
+.hero__video--hover{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .4s ease;
+}
+.hero__visual:hover .hero__video--hover,
+.hero__visual:focus-within .hero__video--hover{ opacity:1; }
+
+/* ============================================================
+   FEATURES
+   ============================================================ */
+.features{
+  min-height:var(--features-h);
+  flex:0 0 auto;
+}
+
+.features__intro{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:var(--feat-pad-y) var(--pad-x);
+  border-right:1px solid var(--line);
+  min-width:0;
+  opacity:0;
+  animation:reveal-rise .95s var(--ease) .5s forwards;
+}
+.features__heading{
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:var(--feat-heading);
+  line-height:1.3;
+  letter-spacing:-0.03em;
+  white-space:nowrap;
+}
+.features__lede{
+  font-family:var(--font-body);
+  font-weight:400;
+  font-size:var(--feat-body);
+  line-height:1.5;
+  color:var(--text-sub);
+  max-width:28em;
+}
+
+.feature{
+  display:flex;
+  flex-direction:column;
+  gap:clamp(0.35rem, calc(0.25rem + 0.5vh), 0.7rem);
+  padding:var(--feat-pad-y) var(--feat-pad-x);
+  border-right:1px solid var(--line);
+  min-width:0;
+  overflow:hidden;
+  opacity:0;
+  animation:reveal-feature .9s var(--ease) forwards;
+}
+.feature:last-child{ border-right:none; }
+.feature:nth-child(2){ animation-delay:.58s; }
+.feature:nth-child(3){ animation-delay:.68s; }
+.feature:nth-child(4){ animation-delay:.78s; }
+.feature:nth-child(5){ animation-delay:.88s; }
+
+.feature__icon{
+  width:var(--icon);
+  height:var(--icon);
+  display:block;
+  opacity:0;
+  animation:badge-in .75s var(--ease) forwards;
+}
+.feature:nth-child(2) .feature__icon{ animation-delay:.66s; }
+.feature:nth-child(3) .feature__icon{ animation-delay:.76s; }
+.feature:nth-child(4) .feature__icon{ animation-delay:.86s; }
+.feature:nth-child(5) .feature__icon{ animation-delay:.96s; }
+
+.feature__title{
+  font-family:var(--font-sans);
+  font-weight:600;
+  font-size:var(--feat-title);
+  letter-spacing:-0.02em;
+  line-height:1.25;
+}
+.feature__body{
+  font-family:var(--font-body);
+  font-weight:400;
+  font-size:var(--feat-body);
+  line-height:1.45;
+  color:var(--text-sub);
+}
+
+/* ============================================================
+   MOBILE NAV OVERLAY
+   ============================================================ */
+.navsheet{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  z-index:50;
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  gap:1.5rem;
+  padding:2rem var(--pad-x);
+}
+body.nav-open .navsheet{ display:flex; }
+.navsheet a{
+  font-family:var(--font-sans);
+  font-weight:500;
+  font-size:1.6rem;
+  letter-spacing:-0.03em;
+  opacity:0;
+  transform:translateY(12px);
+  animation:reveal-up .5s var(--ease) forwards;
+}
+body.nav-open .navsheet a:nth-child(1){ animation-delay:.06s; }
+body.nav-open .navsheet a:nth-child(2){ animation-delay:.12s; }
+body.nav-open .navsheet a:nth-child(3){ animation-delay:.18s; }
+body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue); }
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+@keyframes reveal-up{ from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+@keyframes reveal-rise{ from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+@keyframes reveal-fade{ from{opacity:0;} to{opacity:1;} }
+@keyframes reveal-visual{
+  from{opacity:0;transform:scale(1.02) translateY(8px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+@keyframes reveal-feature{ from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+@keyframes badge-in{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+@keyframes btn-pop{ from{opacity:0;} to{opacity:1;} }
+@keyframes caret-blink{ 0%,45%{opacity:1;} 50%,100%{opacity:0;} }
+@keyframes badge-pulse{
+  0%,100%{ opacity:1; transform:scale(1); box-shadow:0 0 0 0 rgba(35,64,255,.35); }
+  50%{ opacity:.7; transform:scale(.92); box-shadow:0 0 0 6px rgba(35,64,255,0); }
+}
+
+/* ============================================================
+   RESPONSIVE, HEIGHT
+   ============================================================ */
+@media (max-height:920px){
+  :root{ --gutter-h:38px; --features-h:clamp(8.5rem, calc(6.5rem + 7vh), 10.5rem); }
+}
+@media (max-height:780px){
+  :root{
+    --gutter-h:30px;
+    --title:clamp(1.9rem, calc(1.4rem + 1.4vw + var(--fit)), 2.9rem);
+    --features-h:clamp(7.75rem, calc(6rem + 6vh), 9.5rem);
+  }
+}
+@media (max-height:640px){
+  body{ overflow:auto; }
+  .frame{ height:auto; min-height:100vh; }
+  :root{ --gutter-h:24px; --features-h:auto; }
+  .features{ height:auto; }
+}
+
+/* ============================================================
+   RESPONSIVE, TABLET
+   ============================================================ */
+@media (max-width:900px){
+  .header.row-grid{ grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
+  .header__link--hide-tablet{ display:none; }
+
+  .hero.row-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .hero__visual{ grid-column:2 / -1; }
+
+  .features.row-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .features__intro{
+    grid-column:1 / -1;
+    border-right:none;
+    border-bottom:1px solid var(--line);
+    gap:.5rem;
+  }
+  .features__heading{ white-space:normal; }
+  .feature:nth-child(2),.feature:nth-child(4){ border-right:1px solid var(--line); }
+  .feature:nth-child(3),.feature:nth-child(5){ border-right:none; }
+  .feature:nth-child(2),.feature:nth-child(3){ border-bottom:1px solid var(--line); }
+  .gutter--features::before{ display:none; }
+  .features{ height:auto; }
+  body{ overflow:auto; }
+  .frame{ height:auto; min-height:100vh; }
+}
+
+/* ============================================================
+   RESPONSIVE, MOBILE
+   ============================================================ */
+@media (max-width:640px){
+  .header.row-grid{ grid-template-columns:1fr auto; }
+  .header__menu{ display:none; }
+  .burger{ display:flex; }
+  .header__brand{ border-right:none; }
+
+  .gutter{ display:none; }
+
+  .hero.row-grid{
+    display:flex;
+    flex-direction:column;
+  }
+  .hero__content{
+    border-right:none;
+    border-bottom:1px solid var(--line);
+    padding:calc(var(--pad-y) * 1.5) var(--pad-x);
+  }
+  .hero__visual{ aspect-ratio:16 / 10; height:auto; }
+  .hero__title{ max-width:none; }
+
+  .features.row-grid{ grid-template-columns:minmax(0,1fr); }
+  .feature{ border-right:none; border-bottom:1px solid var(--line); }
+  .feature:last-child{ border-bottom:none; }
+
+  /* The five-column grid is a desktop composition. Left on a phone it squeezes
+     every section heading into the first column, which is where the layout was
+     breaking. Sections added after the original hero need it too. */
+  .versus.row-grid, .how.row-grid, .audit.row-grid, .proof.row-grid{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .versus .features__intro,
+  .how .features__intro,
+  .audit .features__intro,
+  .proof .features__intro{ border-right:none; }
+
+  /* Wide blocks scroll inside themselves; make that discoverable rather than
+     letting a phone user think the text is cut off. */
+  .vs, .audit__table, .how__table, .how__figure{
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+
+  .frame{ padding-bottom:var(--frame-pad-b); }
+}
+
+@media (max-width:380px){
+  .hero__visual{ aspect-ratio:4 / 3; }
+  .hero__actions{ flex-direction:column; align-items:stretch; width:100%; }
+  .btn{ width:100%; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation:none !important;
+    transition:none !important;
+  }
+  .header,.gutter,.hero__visual,.badge,.hero__sub,.hero__actions,
+  .btn,.features__intro,.feature,.feature__icon,.navsheet a{
+    opacity:1 !important;
+    transform:none !important;
+  }
+}
+
+/* Children that span the whole grid carry the page inset themselves: only
+   .features__intro has padding of its own. */
+.how__body, .how__table, .proof__numbers{ margin-inline: var(--pad-x); }
+
+/* ============================= AUDIT ============================ */
+.audit{ padding-block: clamp(2.5rem,6vh,5rem); }
+.audit__table{
+  grid-column:1 / -1; margin:1.75rem var(--pad-x) 0; border:1px solid var(--line);
+  font-size:var(--feat-body); overflow-x:auto;
+}
+.audit__row{
+  display:grid; grid-template-columns:minmax(11rem,1.5fr) minmax(6.5rem,.8fr) minmax(14rem,2fr);
+  border-bottom:1px solid var(--line); min-width:36rem; align-items:baseline;
+}
+.audit__row:last-child{ border-bottom:none; }
+.audit__row > *{ padding:.75rem .9rem; }
+.audit__row--head > *{ font-weight:600; color:var(--ink); background:#fafafa; }
+.audit__what{ color:var(--ink); font-weight:500; }
+.audit__why{ color:var(--ink-muted); line-height:1.55; }
+.audit__why a{ color:var(--blue); font-family:var(--font-mono); font-size:.92em; word-break:break-all; }
+.verdict{
+  display:inline-flex; align-items:center; gap:.4rem; font-family:var(--font-mono);
+  font-size:.78em; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;
+}
+.verdict::before{ content:""; width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
+.verdict--safe{ color:#0f7a45; } .verdict--safe::before{ background:#0f9d58; }
+.verdict--ours{ color:var(--blue); } .verdict--ours::before{ background:var(--blue); }
+.verdict--open{ color:#a34700; } .verdict--open::before{ background:#e07b00; }
+.verdict--not-ours{ color:#4a4a4a; } .verdict--not-ours::before{ background:#9a9aa4; }
+
+.audit__note{
+  grid-column:1 / -1; margin:1.5rem var(--pad-x) 0; max-width:64ch;
+  color:var(--ink-muted); font-size:var(--feat-body); line-height:1.7;
+}
+.audit__note b{ color:var(--ink); }
+
+/* ============================= CTA ============================= */
+.cta{
+  grid-column:1 / -1; display:flex; flex-direction:column; align-items:flex-start;
+  gap:1.15rem; padding:clamp(2.25rem,6vh,4rem) var(--pad-x);
+}
+.cta__kicker{
+  font-family:var(--font-mono); font-size:var(--badge); letter-spacing:.1em;
+  text-transform:uppercase; color:var(--blue);
+}
+.cta__title{
+  font-weight:600; letter-spacing:-.025em; line-height:1.1; max-width:20ch;
+  font-size:clamp(1.6rem, calc(1.1rem + 1.9vw), 3rem);
+}
+.cta__body{ max-width:54ch; color:var(--ink-muted); font-size:var(--feat-body); line-height:1.65; }
+.cta__btn{
+  display:inline-flex; align-items:center; gap:.85rem; margin-top:.4rem;
+  background:var(--blue); color:#fff; font-weight:600; letter-spacing:-.015em;
+  font-size:clamp(1rem, calc(.85rem + .5vw), 1.35rem);
+  padding:clamp(.95rem,2.2vh,1.35rem) clamp(1.5rem,3.5vw,2.6rem);
+  transition:filter .2s var(--ease), box-shadow .28s var(--ease), transform .2s var(--ease);
+}
+.cta__btn:hover{ filter:brightness(1.09); box-shadow:0 12px 30px rgba(35,64,255,.3); transform:translateY(-1px); }
+.cta__btn:active{ transform:none; box-shadow:0 4px 12px rgba(35,64,255,.22); }
+.cta__btn svg{ flex:0 0 auto; }
+.cta__meta{
+  display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin-top:.4rem;
+  font-family:var(--font-mono); font-size:var(--feat-body); color:var(--text-sub);
+}
+
+/* ============================ VERSUS ============================ */
+.versus{ padding-block: clamp(2.5rem,6vh,5rem); }
+.vs{
+  grid-column:1 / -1; margin:1.75rem var(--pad-x) 0;
+  border:1px solid var(--line); overflow-x:auto; font-size:var(--feat-body);
+}
+.vs__row{
+  display:grid; grid-template-columns:minmax(9rem,1.1fr) minmax(11rem,1.4fr) minmax(11rem,1.4fr);
+  border-bottom:1px solid var(--line); min-width:34rem;
+}
+.vs__row:last-child{ border-bottom:none; }
+.vs__row > *{ padding:.8rem .95rem; line-height:1.5; }
+.vs__row--head > *{ font-weight:600; background:#fafafa; }
+.vs__row--head > *:last-child{ color:var(--blue); }
+.vs__q{ color:var(--text-sub); }
+.vs__them{ color:var(--ink-muted); }
+.vs__us{ color:var(--ink); font-weight:500; border-left:2px solid rgba(35,64,255,.25); }
+.vs__row--punch{ background:rgba(35,64,255,.04); }
+.vs__row--punch .vs__us{ color:var(--blue); font-weight:600; }
+.vs__note{
+  grid-column:1 / -1; margin:1.4rem var(--pad-x) 0; max-width:64ch;
+  color:var(--ink-muted); font-size:var(--feat-body); line-height:1.7;
+}
+.vs__note b{ color:var(--ink); }
+
+/* ============================ SOURCE =========================== */
+.source{
+  grid-column:1 / -1; margin:2rem var(--pad-x) 0; padding:1.1rem 1.2rem;
+  border:1px solid var(--line); background:var(--surface);
+  display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap;
+}
+.source__icon{ flex:0 0 auto; color:var(--ink); margin-top:.15rem; }
+.source__body{ flex:1 1 18rem; min-width:0; }
+.source__title{ font-weight:600; letter-spacing:-.015em; }
+.source__text{ margin-top:.35rem; color:var(--ink-muted); font-size:var(--feat-body); line-height:1.65; }
+.source__link{
+  display:inline-flex; align-items:center; gap:.45rem; margin-top:.6rem;
+  font-family:var(--font-mono); font-size:var(--feat-body); color:var(--blue); word-break:break-all;
+}
+.source__link:hover{ text-decoration:underline; }
+
+/* ============================ FOOT ============================= */
+.foot{
+  grid-column:1 / -1; margin:2.5rem var(--pad-x) 0; padding:1.25rem 0 0;
+  border-top:1px solid var(--line); display:flex; gap:.75rem 2rem; flex-wrap:wrap;
+  color:var(--text-sub); font-size:var(--feat-body); line-height:1.6;
+}
+.foot a{ color:var(--blue); }
+
+/* ============================= HOW ============================= */
+.how{ padding-block: clamp(2.5rem, 6vh, 5rem); }
+.how__body{ grid-column:1 / -1; display:grid; gap:1.1rem 3rem; margin-top:.5rem; }
+@media (min-width:900px){ .how__body{ grid-template-columns:1fr 1fr; } }
+.how__p{ max-width:56ch; color:var(--ink-muted); font-size:var(--feat-body); line-height:1.7; }
+.how__p em{ font-style:normal; color:var(--ink); font-weight:500; }
+
+.how__figure{
+  grid-column:1 / -1; margin:2.25rem var(--pad-x) 0; padding:1.25rem;
+  border:1px solid var(--line); border-radius:12px; background:var(--surface);
+  overflow-x:auto;
+}
+.how__figure svg{ display:block; width:100%; min-width:520px; height:auto; color:var(--ink); }
+.how__node circle{ fill:var(--ink); }
+.how__node circle:first-child{ fill:none; stroke:var(--ink); stroke-width:1.4; }
+.how__sig{ fill:var(--blue); }
+.how__siglabel{ fill:#fff; font:600 15px var(--font-mono); }
+.how__cap{ fill:var(--ink); font:500 12px var(--font-sans); }
+.how__sub{ fill:var(--text-sub); font:400 10.5px var(--font-mono); }
+.how__brace{ opacity:.35; }
+.how__wire{ opacity:.55; }
+
+.how__steps{
+  grid-column:1 / -1; margin:2rem var(--pad-x) 0; padding:0; list-style:none;
+  display:grid; gap:1px; background:var(--line); border:1px solid var(--line);
+}
+@media (min-width:900px){ .how__steps{ grid-template-columns:repeat(3,1fr); } }
+.how__steps li{
+  background:var(--surface); padding:1.15rem 1.1rem;
+  color:var(--ink-muted); font-size:var(--feat-body); line-height:1.6;
+}
+.how__steps b{ display:block; margin-bottom:.35rem; color:var(--ink); font-weight:600; }
+
+.how__table{
+  grid-column:1 / -1; margin-top:2rem; border:1px solid var(--line);
+  font-size:var(--feat-body); overflow-x:auto;
+}
+.how__trow{
+  display:grid; grid-template-columns:minmax(7.5rem,1fr) 1.4fr 1.4fr;
+  border-bottom:1px solid var(--line); min-width:34rem;
+}
+.how__trow:last-child{ border-bottom:none; }
+.how__trow > *{ padding:.7rem .9rem; color:var(--ink-muted); }
+.how__trow > *:first-child{ color:var(--text-sub); }
+.how__trow--head > *{ color:var(--ink); font-weight:600; background:#fafafa; }
+.how__trow > *:last-child{ color:var(--ink); }
+
+.how__note{
+  grid-column:1 / -1; margin:1.5rem var(--pad-x) 0; max-width:62ch;
+  color:var(--text-sub); font-size:var(--feat-body); line-height:1.65;
+}
+
+/* ============================ PROOF ============================ */
+.proof{ padding-block: clamp(2.5rem, 6vh, 5rem); }
+.proof__facts{ margin:0 var(--pad-x); grid-column:1 / -1; border-top:1px solid var(--line); }
+.proof__row{
+  display:flex; flex-wrap:wrap; gap:.35rem 1.25rem; align-items:baseline;
+  padding:.85rem 0; border-bottom:1px solid var(--line);
+}
+.proof__row dt{ flex:0 0 12rem; color:var(--text-sub); font-size:var(--feat-body); }
+.proof__row dd{ margin:0; min-width:0; }
+.proof__row a{
+  font-family:var(--font-mono); font-size:var(--feat-body); color:var(--blue);
+  text-decoration:none; word-break:break-all;
+}
+.proof__row a:hover{ text-decoration:underline; }
+
+.proof__numbers{
+  grid-column:1 / -1; display:grid; gap:1px; margin-top:2rem;
+  grid-template-columns:repeat(auto-fit, minmax(11rem, 1fr));
+  background:var(--line); border:1px solid var(--line);
+}
+.proof__stat{ background:var(--surface); padding:1.1rem 1rem; }
+.proof__stat b{
+  display:block; font-size:clamp(1.4rem, calc(1rem + 1vw), 2.1rem);
+  font-weight:600; letter-spacing:-.02em;
+}
+.proof__stat span{ display:block; margin-top:.3rem; color:var(--text-sub); font-size:var(--feat-body); line-height:1.45; }
+
+.proof__note{
+  grid-column:1 / -1; margin:1.75rem var(--pad-x) 0; max-width:62ch;
+  color:var(--ink-muted); font-size:var(--feat-body); line-height:1.65;
+}
+.proof__note--warn{
+  border-left:2px solid var(--blue); padding-left:1rem; color:var(--ink);
+}
+@media (max-width:640px){
+  .proof__row dt{ flex-basis:100%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="frame">
+
+  <!-- ========================= HEADER ========================= -->
+  <header class="header row-grid">
+    <div class="header__brand">
+      <img class="header__logo" src="/assets/logo-512.png" alt="" width="24" height="24" />
+      <span class="header__word">Winternitz</span>
+    </div>
+
+    <nav class="header__menu">
+      <a class="header__link header__link--hide-tablet" href="#how">How it works</a>
+      <a class="header__link header__link--hide-tablet" href="#proof">Proof</a>
+      <a class="header__link header__link--hide-tablet" href="https://github.com/blueshift-gg/solana-winternitz-vault" target="_blank" rel="noopener">GitHub</a>
+      <a class="header__link" href="/launchpad.html">Launchpad</a>
+      <a class="header__link header__link--cta" href="/launchpad.html">Launch a token</a>
+    </nav>
+
+    <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="navsheet">
+      <span class="burger__box">
+        <span class="burger__line"></span>
+        <span class="burger__line"></span>
+        <span class="burger__line"></span>
+      </span>
+    </button>
+  </header>
+
+  <!-- ========================= GUTTER ========================= -->
+  <div class="gutter" aria-hidden="true"></div>
+
+  <!-- ========================== HERO ========================== -->
+  <section class="hero row-grid">
+    <div class="hero__content">
+
+      <div class="badge">
+        <span class="badge__text" id="badgeText" aria-live="off">THE FIRST QUANTUM-PROTECTION TOKEN ON SOLANA</span>
+      </div>
+
+      <h1 class="hero__title" aria-label="Quantum-proof on Solana today. Every other token is on borrowed time.">
+        <span class="line line--muted" data-print="Quantum-proof, on Solana, today."></span>
+        <span class="line line--strong" data-print="Every other token is on borrowed time."></span>
+      </h1>
+
+      <p class="hero__sub">
+        Every asset a project ever accumulates, guarded by a signature Shor cannot forge and
+        Grover cannot brute-force in the lifetime of the universe.<br />The day quantum arrives,
+        this is the only thing on Solana still standing.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="/launchpad.html">Open the launchpad</a>
+        <a class="btn btn--ghost" href="#proof">Verify on chain</a>
+      </div>
+
+    </div>
+
+    <div class="hero__visual">
+      <video class="hero__video hero__video--base"
+             autoplay muted loop playsinline preload="auto">
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_133235_37fdd7c6-69cb-44f1-9936-4600b59d3ee7.mp4" type="video/mp4" />
+      </video>
+      <video class="hero__video hero__video--hover"
+             autoplay muted loop playsinline preload="auto">
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_135732_f8178baa-95d1-4c08-b880-a9f4439e4a63.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </section>
+
+  <!-- ==================== GUTTER (FEATURES) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- ========================= FEATURES ========================= -->
+  <section class="features row-grid">
+
+    <div class="features__intro">
+      <h2 class="features__heading">Built for the day the maths breaks.</h2>
+      <p class="features__lede">The first quantum-protection token on Solana. Locked liquidity is table stakes; any launchpad can burn an LP. None of them can sign without elliptic curves.</p>
+    </div>
+
+    <article class="feature">
+      <svg class="feature__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M11 2 4 11h5l-1 7 7-9h-5l1-7Z" stroke="#0A0A0A" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      <h3 class="feature__title">Nobody has done this</h3>
+      <p class="feature__body">No Winternitz vault has ever run on Solana. Ours does, today, and every transaction is linked below.</p>
+    </article>
+
+    <article class="feature">
+      <svg class="feature__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="6" height="6" stroke="#0A0A0A" stroke-width="1.4"/>
+        <rect x="11.5" y="2.5" width="6" height="6" stroke="#0A0A0A" stroke-width="1.4"/>
+        <rect x="2.5" y="11.5" width="6" height="6" stroke="#0A0A0A" stroke-width="1.4"/>
+        <rect x="11.5" y="11.5" width="6" height="6" stroke="#0A0A0A" stroke-width="1.4"/>
+      </svg>
+      <h3 class="feature__title">Signed by hashes</h3>
+      <p class="feature__body">Supply and treasury answer to a hash-based signature. Shor's algorithm has nothing here to break.</p>
+    </article>
+
+    <article class="feature">
+      <svg class="feature__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="10" cy="10" r="7.5" stroke="#0A0A0A" stroke-width="1.4"/>
+        <path d="m6.6 10.2 2.3 2.3 4.5-4.6" stroke="#0A0A0A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h3 class="feature__title">Every key dies once</h3>
+      <p class="feature__body">A key signs a single time and the vault rotates in the same instruction. Reuse does not weaken it. It fails.</p>
+    </article>
+
+    <article class="feature">
+      <svg class="feature__icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3.5" y="8.5" width="13" height="9" rx="1.2" stroke="#0A0A0A" stroke-width="1.4"/>
+        <path d="M6.75 8.5V6a3.25 3.25 0 0 1 6.5 0v2.5" stroke="#0A0A0A" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <h3 class="feature__title">Still an ordinary token</h3>
+      <p class="feature__body">A standard SPL token that trades anywhere. The cryptography sits underneath. Nothing to adapt.</p>
+    </article>
+
+  </section>
+
+  <!-- ==================== GUTTER (VERSUS) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- ========================= VERSUS =========================== -->
+  <section class="versus row-grid" id="versus">
+
+    <div class="features__intro">
+      <h2 class="features__heading">The day the quantum computer arrives.</h2>
+      <p class="features__lede">
+        A working quantum computer breaks Ed25519, the signature every ordinary token relies on.
+        Here is what happens to a normal token that day, and what happens to this one. Both
+        columns are checkable in an explorer right now.
+      </p>
+    </div>
+
+    <div class="vs" role="table" aria-label="An ordinary token compared with this one">
+      <div class="vs__row vs__row--head" role="row">
+        <span role="columnheader">&nbsp;</span>
+        <span role="columnheader">Every other token, quantum day</span>
+        <span role="columnheader">A Winternitz token, quantum day</span>
+      </div>
+      <div class="vs__row" role="row">
+        <span class="vs__q">Supply</span>
+        <span class="vs__them">Anyone who cracks the Ed25519 mint key prints unlimited tokens.</span>
+        <span class="vs__us">Untouched. No mint authority exists to crack.</span>
+      </div>
+      <div class="vs__row" role="row">
+        <span class="vs__q">Liquidity</span>
+        <span class="vs__them">Anyone who cracks the LP owner key drains the pool.</span>
+        <span class="vs__us">Untouched. The locked LP has no owner key to crack.</span>
+      </div>
+      <div class="vs__row" role="row">
+        <span class="vs__q">Fees and treasury</span>
+        <span class="vs__them">Anyone who cracks the wallet key empties years of savings.</span>
+        <span class="vs__us">Untouched. Guarded by a hash chain Shor cannot invert.</span>
+      </div>
+      <div class="vs__row" role="row">
+        <span class="vs__q">Your holdings</span>
+        <span class="vs__them">Anyone who cracks your wallet takes everything in it.</span>
+        <span class="vs__us">Move them into a Winternitz vault and the same crack finds nothing.</span>
+      </div>
+      <div class="vs__row vs__row--punch" role="row">
+        <span class="vs__q">The verdict</span>
+        <span class="vs__them">Every line above falls at once. The token is a carcass.</span>
+        <span class="vs__us">Every line above still stands. There was never a key to take.</span>
+      </div>
+    </div>
+
+    <p class="vs__note">
+      <b>Why it holds.</b> Ed25519 keeps a secret that its public key mathematically implies;
+      Shor's algorithm draws the line between them. A hash chain keeps no such secret. The vault's
+      public key is the far end of 255 hashes, and walking back even one step means inverting a
+      hash, which is the one thing quantum computers barely help with. Grover halves the exponent
+      and stops there.
+    </p>
+    <p class="vs__note">
+      <b>Why the rest is safe too.</b> The reserves and the locked liquidity are not guarded by a
+      better key. They are guarded by <em>no key</em>: program addresses on Solana are derived
+      deliberately off the elliptic curve, so no private key for them exists to be found. Put
+      together, an attacker holding a working quantum computer would look at this token and find
+      nothing with a lock on it.
+    </p>
+
+  </section>
+
+  <!-- ==================== GUTTER (HOW) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- =========================== HOW ============================ -->
+  <section class="how row-grid" id="how">
+
+    <div class="features__intro">
+      <h2 class="features__heading">A signature you can only use once.</h2>
+      <p class="features__lede">
+        That sounds like a defect. It is the entire defence, and it is why this survives
+        the machine that breaks everything else.
+      </p>
+    </div>
+
+    <div class="how__body">
+      <p class="how__p">
+        Every ordinary Solana account is guarded by Ed25519. Its security rests on one bet:
+        that nobody can work backwards from a public key to the private key. A quantum
+        computer running Shor's algorithm makes that walk backwards trivial. Not faster , 
+        <em>trivial</em>. Every key ever published becomes a key anyone can forge.
+      </p>
+      <p class="how__p">
+        Hashes have no such door. The best a quantum computer can do against a hash is
+        Grover's algorithm, which halves the exponent: 192 bits of security become 96.
+        Still 79,228,162,514,264,337,593,543,950,336 attempts. So we build the signature
+        out of nothing but hashes.
+      </p>
+    </div>
+
+    <figure class="how__figure">
+      <svg viewBox="0 0 720 210" role="img" aria-label="A hash chain: the secret at one end, the public key at the other, and the signature revealed partway along" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0 0 L8 4 L0 8 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g class="how__wire" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)">
+          <line x1="86"  y1="96" x2="146" y2="96"/>
+          <line x1="176" y1="96" x2="236" y2="96"/>
+          <line x1="266" y1="96" x2="326" y2="96"/>
+          <line x1="386" y1="96" x2="446" y2="96"/>
+          <line x1="476" y1="96" x2="536" y2="96"/>
+          <line x1="566" y1="96" x2="626" y2="96"/>
+        </g>
+
+        <g class="how__node">
+          <circle cx="70"  cy="96" r="13"/>
+          <circle cx="161" cy="96" r="7"/>
+          <circle cx="251" cy="96" r="7"/>
+          <circle cx="431" cy="96" r="7"/>
+          <circle cx="521" cy="96" r="7"/>
+          <circle cx="641" cy="96" r="13"/>
+        </g>
+
+        <rect class="how__sig" x="337" y="80" width="42" height="32" rx="6"/>
+        <text class="how__siglabel" x="358" y="101" text-anchor="middle">σ</text>
+
+        <text class="how__cap" x="70"  y="139" text-anchor="middle">secret</text>
+        <text class="how__sub" x="70"  y="155" text-anchor="middle">never shown</text>
+        <text class="how__cap" x="358" y="139" text-anchor="middle">signature</text>
+        <text class="how__sub" x="358" y="155" text-anchor="middle">published</text>
+        <text class="how__cap" x="641" y="139" text-anchor="middle">public key</text>
+        <text class="how__sub" x="641" y="155" text-anchor="middle">on chain</text>
+
+        <g class="how__brace" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M70 58 L70 48 L358 48 L358 58"/>
+          <path d="M358 58 L358 48 L641 48 L641 58"/>
+        </g>
+        <text class="how__sub" x="214" y="38" text-anchor="middle">the message says: walk m steps</text>
+        <text class="how__sub" x="500" y="38" text-anchor="middle">anyone can walk the remaining 255 − m</text>
+
+        <text class="how__sub" x="360" y="190" text-anchor="middle">one chain of 255 hashes · a signature uses 34 of them at once</text>
+      </svg>
+    </figure>
+
+    <ol class="how__steps">
+      <li>
+        <b>The chain.</b> Start from a secret and hash it 255 times. The far end is the public
+        key, published for all to see. Nobody can walk back towards the secret, because that
+        would mean inverting a hash.
+      </li>
+      <li>
+        <b>The signature.</b> The message decides how far along to stop. You reveal that one
+        link. A verifier hashes it the remaining number of times and checks it lands exactly
+        on the public key. It fits: the message chose the distance, and only the holder of
+        the secret could have reached that point.
+      </li>
+      <li>
+        <b>The catch, and the trick.</b> Show two links on the same chain and a forger can
+        interpolate between them. So the key dies on first use, and every signature carries
+        the hash of its successor. The vault rotates in the same instruction, before the money
+        moves. Reuse does not weaken the signature; it fails, because the key it would be
+        checked against no longer exists.
+      </li>
+    </ol>
+
+    <div class="how__table" role="table" aria-label="Ed25519 compared with this vault">
+      <div class="how__trow how__trow--head" role="row">
+        <span role="columnheader">&nbsp;</span>
+        <span role="columnheader">Ed25519</span>
+        <span role="columnheader">This vault</span>
+      </div>
+      <div class="how__trow" role="row">
+        <span role="rowheader">Rests on</span><span>elliptic curves</span><span>hash preimages</span>
+      </div>
+      <div class="how__trow" role="row">
+        <span role="rowheader">Quantum attack</span><span>Shor recovers the key outright</span><span>Grover, halves the exponent, 96 bits left</span>
+      </div>
+      <div class="how__trow" role="row">
+        <span role="rowheader">Key reuse</span><span>unlimited, by design</span><span>once, enforced by rotation</span>
+      </div>
+      <div class="how__trow" role="row">
+        <span role="rowheader">Signature size</span><span>64 bytes</span><span>816 bytes</span>
+      </div>
+      <div class="how__trow" role="row">
+        <span role="rowheader">Cost to verify</span><span>free, the runtime does it</span><span>695,337 compute units</span>
+      </div>
+    </div>
+
+    <p class="how__note">
+      The price is honest and it is on that last row: signatures thirteen times larger, and
+      half a transaction's compute budget spent walking hash chains. That is what it costs
+      to hold an authority that does not depend on elliptic curves staying hard.
+    </p>
+
+  </section>
+
+  <!-- ==================== GUTTER (AUDIT) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- ========================== AUDIT =========================== -->
+  <section class="audit row-grid" id="audit">
+
+    <div class="features__intro">
+      <h2 class="features__heading">One vault, every asset a Solana project holds. Audited line by line against a quantum computer.</h2>
+      <p class="features__lede">
+        One vault. Every treasury, every mint, every DAO signer, every fee stream, every
+        upgrade key. Anything worth signing for, in the years before quantum lands and the
+        years after. We hand you the addresses and dare you to check.
+      </p>
+    </div>
+
+    <div class="audit__table" role="table" aria-label="What a quantum computer could reach">
+      <div class="audit__row audit__row--head" role="row">
+        <span role="columnheader">What holds value</span>
+        <span role="columnheader">Verdict</span>
+        <span role="columnheader">Why</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Reserves on the curve</span>
+        <span><span class="verdict verdict--safe">no key exists</span></span>
+        <span class="audit__why">Held by a program address, which is derived off the elliptic curve on purpose. There is no private key, so Shor's algorithm has no target.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Liquidity after graduation</span>
+        <span><span class="verdict verdict--safe">no key exists</span></span>
+        <span class="audit__why">100% permanently locked. Locked, not burned: nobody can withdraw it and the fees it earns still go somewhere. To us, and then out again.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Supply of a launched token</span>
+        <span><span class="verdict verdict--safe">no key exists</span></span>
+        <span class="audit__why">The mint is immutable from creation. No authority survives, so there is nothing to steal and nobody, including us, can ever print more.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Everything the project holds forever</span>
+        <span><span class="verdict verdict--ours">Winternitz vault</span></span>
+        <span class="audit__why">Trading fees from every token launched here, the treasury the team owns, and the address that collects from every locked LP for as long as this launchpad exists. Add years of accumulation and this is where the real money lives. A quantum computer with a working Shor engine looks at this vault and finds nothing to break.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Authority over any token launched here</span>
+        <span><span class="verdict verdict--ours">Winternitz vault</span></span>
+        <span class="audit__why">Any project on this launchpad can put its own mint authority, its own multisig, its own treasury behind the same vault. One signature scheme protects every asset a Solana project ever accumulates, from year one to year twenty.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Anything else worth signing for</span>
+        <span><span class="verdict verdict--ours">Winternitz vault</span></span>
+        <span class="audit__why">The vault runs arbitrary programs on Solana under a one-time signature: DAO votes, cross-program calls, custody of NFTs, upgrade authorities on other contracts. Whatever you need signed years from now, this signs.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Meteora's upgrade key</span>
+        <span><span class="verdict verdict--not-ours">not our layer</span></span>
+        <span class="audit__why">The curve and pool programs can be replaced by their multisig, and a multisig is still elliptic curves underneath. Not ours to fix, so we name it: <a href="https://explorer.solana.com/address/JADaUV8kvDpDbJr55wxXJHVaBS3VCj8thZZHjfeuCVLd" target="_blank" rel="noopener">JADaUV8kv…feuCVLd</a></span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Our own upgrade key</span>
+        <span><span class="verdict verdict--not-ours">not our layer</span></span>
+        <span class="audit__why">Upgradeable while the code is young, and we publish the key rather than hide it. It gets burned the day the code is final: <a href="https://explorer.solana.com/address/EFQJ3sPajnmdUZgRhM5bwugUGnqFo79UUDkom4NbxaeU" target="_blank" rel="noopener">EFQJ3sPa…m4NbxaeU</a>. It gets burned when the code stops changing.</span>
+      </div>
+      <div class="audit__row" role="row">
+        <span class="audit__what">Your own wallet</span>
+        <span><span class="verdict verdict--not-ours">not our layer</span></span>
+        <span class="audit__why">That is what a Solana account is. No token can change it, and any project telling you otherwise is lying to you.</span>
+      </div>
+    </div>
+
+    <p class="audit__note">
+      <b>Read the table and it says this:</b> the money sits where no key can reach it, and the
+      income sits behind a signature no quantum computer can forge. Everything left on that list
+      is the rest of Solana, the same for every token that has ever existed. On the parts that
+      are actually ours, we are further than anyone on this chain.
+    </p>
+    <p class="audit__note">
+      <b>Where the idea comes from.</b> Dean Little published
+      <a href="https://github.com/blueshift-gg/solana-winternitz-vault" target="_blank" rel="noopener">solana-winternitz-vault</a>,
+      the first Winternitz vault written for Solana, and it is the reason anyone knows this is
+      possible here. That program guards lamports and cannot touch tokens, so ours is written
+      from the scheme rather than forked: it adds the cross-program calls that let a vault be a
+      mint authority, a treasury and a launchpad's fee collector. The signature scheme is the
+      same well-known one, and we would rather point at the shoulders we are standing on than
+      pretend we invented hash-based signatures.
+    </p>
+    <p class="audit__note">
+      Next comes our own curve with its upgrade key burned, so that no key exists anywhere in
+      the stack at all. Audited first, because code that can never be patched had better be
+      right, and paid for out of the fees this one is already earning.
+    </p>
+
+  </section>
+
+  <!-- ==================== GUTTER (CTA) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- =========================== CTA ============================ -->
+  <section class="row-grid">
+    <div class="cta">
+      <span class="cta__kicker">Quantum Launchpad · the first on Solana</span>
+      <h2 class="cta__title">Launch a token whose keys outlive the maths.</h2>
+      <p class="cta__body">
+        Free to launch, liquidity locked forever when it graduates, and the address every
+        fee is paid to is a Winternitz vault instead of a keypair. The curve is Meteora's,
+        battle-tested and unchanged. What is ours is the part that holds the money.
+      </p>
+      <a class="cta__btn" href="/launchpad.html">
+        Open the launchpad
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 7h15M11 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <div class="cta__meta">
+        <span>1.5% fee</span><span>40 SOL to graduate</span><span>LP locked 100%</span><span>free to create</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== GUTTER (PROOF) ==================== -->
+  <div class="gutter gutter--features" aria-hidden="true"></div>
+
+  <!-- ========================== PROOF =========================== -->
+  <section class="proof row-grid" id="proof">
+
+    <div class="features__intro">
+      <h2 class="features__heading">Live on mainnet. Here is the receipt.</h2>
+      <p class="features__lede">
+        Every address below is live. Open them in an explorer and read the transactions
+        yourself: with cryptography, that is the only kind of claim worth making.
+      </p>
+    </div>
+
+    <dl class="proof__facts">
+      <div class="proof__row">
+        <dt>Program, on mainnet</dt>
+        <dd><a href="https://explorer.solana.com/address/13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT" target="_blank" rel="noopener">13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT</a></dd>
+      </div>
+      <div class="proof__row">
+        <dt>Program, on devnet</dt>
+        <dd><a href="https://explorer.solana.com/address/HBHP37mXs86kxn8i5twKiPkvtZWx2wDyUEUGVQAo72Da?cluster=devnet" target="_blank" rel="noopener">HBHP37mXs86kxn8i5twKiPkvtZWx2wDyUEUGVQAo72Da</a></dd>
+      </div>
+      <div class="proof__row">
+        <dt>Vault</dt>
+        <dd><a href="https://explorer.solana.com/address/8CGNHj8pT8Cx23GstLPtxXYh2k9CCPuZgc2gWPX2ePDo?cluster=devnet" target="_blank" rel="noopener">8CGNHj8pT8Cx23GstLPtxXYh2k9CCPuZgc2gWPX2ePDo</a></dd>
+      </div>
+      <div class="proof__row">
+        <dt>Test token</dt>
+        <dd><a href="https://explorer.solana.com/address/4efasJu5zoYhfTGPCvZ26DrdwcjByeqqEvW6xKz8LJwv?cluster=devnet" target="_blank" rel="noopener">4efasJu5zoYhfTGPCvZ26DrdwcjByeqqEvW6xKz8LJwv</a></dd>
+      </div>
+      <div class="proof__row">
+        <dt>The vault calling another program</dt>
+        <dd><a href="https://explorer.solana.com/tx/3WkCjvg6GkwP3kmFubRh7XVwcWHUz5HwRhRjHkgoz5JakrKrFWiAVzBQRJNeUnFrJg5cPSLFGpFi63qgtF4oBBFc?cluster=devnet" target="_blank" rel="noopener">3WkCjvg6…tF4oBBFc</a></dd>
+      </div>
+      <div class="proof__row">
+        <dt>A quantum-signed mint</dt>
+        <dd><a href="https://explorer.solana.com/tx/5aKThPDmWQS1FKJAuC9ebqDsYPp72k6gwJnsKmdihuuD9ZzkgVqBnu4s8bAoYi1A5wHmBKuVhwTxx7wDP77WYZey?cluster=devnet" target="_blank" rel="noopener">5aKThPDm…P77WYZey</a></dd>
+      </div>
+    </dl>
+
+    <div class="proof__numbers">
+      <div class="proof__stat"><b>816</b><span>bytes long, the size of one hash-based signature that fits in a single transaction</span></div>
+      <div class="proof__stat"><b>695,337</b><span>calculations to check one signature, half of what a Solana transaction is allowed to spend</span></div>
+      <div class="proof__stat"><b>9 out of 9</b><span>attempts to forge a signature, all rejected by the chain</span></div>
+      <div class="proof__stat"><b>2<sup>192</sup></b><span>guesses a quantum computer would need to break one key, more than the atoms in the universe</span></div>
+    </div>
+
+    <dl class="proof__facts" style="margin-top:2rem">
+      <div class="proof__row"><dt>Launchpad fee</dt><dd>1.5% total: 0.8% platform, 0.4% creator, 0.3% Meteora</dd></div>
+      <div class="proof__row"><dt>Graduation</dt><dd>40 SOL, half of what pump.fun asks</dd></div>
+      <div class="proof__row"><dt>Liquidity at graduation</dt><dd>100% permanently locked, nobody can pull it</dd></div>
+      <div class="proof__row"><dt>Launching a token</dt><dd>free</dd></div>
+      <div class="proof__row"><dt>Fees are paid to</dt><dd>a Winternitz vault, not a keypair</dd></div>
+    </dl>
+
+    <p class="proof__note">
+      We tried to rob it nine different ways. Sending the same signed transaction twice.
+      Signing with a key that had already been used. Signing with a key the vault never knew.
+      Changing the amount after signing. Changing who receives the money. The chain rejected
+      every single attempt, and anyone can rerun the lot with one command and watch it happen.
+    </p>
+
+    <p class="proof__note">
+      And the vault is not tied to one token. It can drive any program on Solana, each call
+      authorised by a signature that covers the target, every account and every byte of the
+      instruction. That is how it collects a launchpad's trading fees: the address Meteora pays
+      has to sign, and here signing means a hash chain rather than a key in a file. It is the
+      first wallet on this chain that a quantum computer cannot empty.
+    </p>
+
+    <p class="proof__note">
+      Read the <a href="#audit">audit</a> for the parts we do not control, named one by one.
+    </p>
+
+
+    <div class="source">
+      <svg class="source__icon" width="22" height="22" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.34c-2.23.49-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/>
+      </svg>
+      <div class="source__body">
+        <div class="source__title">Standing on someone else's work, and saying so</div>
+        <p class="source__text">
+          Dean Little wrote the first Winternitz vault for Solana. That program guards lamports
+          and cannot touch tokens, so ours is written from the same scheme rather than forked:
+          it adds the cross-program calls that let a vault hold a mint authority, a treasury and
+          a launchpad's fees. The signature scheme is the well-known one. We would rather point
+          at the shoulders we are standing on than pretend we invented hash-based signatures.
+        </p>
+        <a class="source__link" href="https://github.com/blueshift-gg/solana-winternitz-vault" target="_blank" rel="noopener">
+          github.com/blueshift-gg/solana-winternitz-vault →
+        </a>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>Winternitz · the post-quantum standard of Solana</span>
+      <span><a href="/launchpad.html">Launchpad</a> · <a href="#audit">Audit</a> · <a href="#proof">Proof</a></span>
+      <span><a href="https://github.com/blueshift-gg/solana-winternitz-vault" target="_blank" rel="noopener">Prior art</a> · <a href="https://explorer.solana.com/address/13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT" target="_blank" rel="noopener">Program on mainnet</a></span>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- ===================== MOBILE NAV SHEET ===================== -->
+<div class="navsheet" id="navsheet">
+  <a href="#how">How it works</a>
+  <a href="#proof">Proof</a>
+  <a href="/launchpad.html">Launchpad</a>
+  <a href="/launchpad.html">Launch a token</a>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------------------------------------------------
+     Typewriter headline.
+     Lines start empty and fill in sequence. With reduced motion
+     the text is simply written out, so the headline is never
+     missing for anyone who cannot see the animation.
+     --------------------------------------------------------- */
+  var lines = Array.prototype.slice.call(document.querySelectorAll(".hero__title .line"));
+
+  if (reduced) {
+    lines.forEach(function (el) { el.textContent = el.dataset.print; });
+  } else {
+    var START_DELAY = 380, CHAR_MS = 42, LINE_PAUSE = 220;
+
+    function typeLine(el) {
+      return new Promise(function (resolve) {
+        var text = el.dataset.print, i = 0;
+        el.classList.add("is-typing");
+        (function step() {
+          if (i > text.length) {
+            el.classList.remove("is-typing");
+            return resolve();
+          }
+          el.textContent = text.slice(0, i++);
+          setTimeout(step, CHAR_MS);
+        })();
+      });
+    }
+
+    setTimeout(function run() {
+      lines.reduce(function (chain, el) {
+        return chain
+          .then(function () { return typeLine(el); })
+          .then(function () {
+            return new Promise(function (r) { setTimeout(r, LINE_PAUSE); });
+          });
+      }, Promise.resolve());
+    }, START_DELAY);
+  }
+
+  /* ---------------------------------------------------------
+     Mobile navigation.
+     --------------------------------------------------------- */
+  var burger = document.querySelector(".burger");
+  var sheet = document.getElementById("navsheet");
+
+  function setNav(open) {
+    document.body.classList.toggle("nav-open", open);
+    burger.setAttribute("aria-expanded", String(open));
+    /* Locking the body is what stops the page scrolling behind
+       the full-screen sheet on iOS. */
+    document.body.style.overflow = open ? "hidden" : "";
+  }
+
+  burger.addEventListener("click", function (e) {
+    e.stopPropagation();
+    setNav(!document.body.classList.contains("nav-open"));
+  });
+
+  sheet.addEventListener("click", function (e) {
+    if (e.target.tagName === "A") setNav(false);
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!document.body.classList.contains("nav-open")) return;
+    if (!sheet.contains(e.target) && !burger.contains(e.target)) setNav(false);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") setNav(false);
+  });
+
+  /* ---------------------------------------------------------
+     Autoplay can be refused (data saver, low power). Retrying on
+     first interaction keeps the panel from sitting as a grey block.
+     --------------------------------------------------------- */
+  var videos = Array.prototype.slice.call(document.querySelectorAll(".hero__video"));
+  function play() { videos.forEach(function (v) { var p = v.play(); if (p) p.catch(function () {}); }); }
+  play();
+  document.addEventListener("pointerdown", play, { once: true });
+})();
+</script>
+
+
+<script>
+/* The badge used to sit there with a pulsing dot, which reads as decoration.
+   Typing it out instead makes the claim arrive as a statement, and lets three
+   of them share the same line without a carousel. */
+(function () {
+  var el = document.getElementById("badgeText");
+  if (!el) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  var lines = [
+    "THE POST-QUANTUM STANDARD OF SOLANA",
+    "QUANTUM-PROOF SUPPLY, TREASURY AND LIQUIDITY",
+    "THE ONLY TOKEN A QUANTUM COMPUTER CANNOT TOUCH",
+    "EVERY OTHER TOKEN ON SOLANA HAS AN EXPIRY DATE",
+    "SIGNED BY HASHES · UNCRACKABLE BY SHOR",
+    "THE END OF ED25519 IS THE END OF EVERYONE ELSE",
+    "LIVE ON MAINNET · GO AND CHECK",
+  ];
+  var i = 0, j = 0, deleting = false;
+
+  function tick() {
+    var full = lines[i];
+    j += deleting ? -1 : 1;
+    el.textContent = full.slice(0, j);
+
+    var wait = deleting ? 22 : 45;
+    if (!deleting && j === full.length) { wait = 2200; deleting = true; }
+    else if (deleting && j === 0) { deleting = false; i = (i + 1) % lines.length; wait = 320; }
+    setTimeout(tick, wait);
+  }
+  el.textContent = "";
+  setTimeout(tick, 600);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Solana security.txt (https://github.com/neodyme-labs/solana-security-txt)
+name: "Winternitz Vault"
+project_url: "https://winternitz.io"
+contacts: "email:security@winternitz.io,twitter:@winternitz"
+policy: "https://winternitz.io/security"
+preferred_languages: "en,es"
+source_code: "https://github.com/openclaw/winternitz-vault"
+auditors: "None yet"
+acknowledgements: "https://winternitz.io/#audit"
