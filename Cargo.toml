@@ -1,0 +1,5 @@
+# Workspace root, only here so the verified-build worker can find Cargo.lock
+# at the mount point and reproduce the program build.
+[workspace]
+members = ["program"]
+resolver = "2"
