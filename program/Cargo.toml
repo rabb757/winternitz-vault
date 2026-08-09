@@ -2,6 +2,7 @@
 name = "winternitz-vault"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.78"
 description = "SPL token mint authority and treasury guarded by one-time hash-based signatures"
 
 [lib]
