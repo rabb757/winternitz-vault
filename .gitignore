@@ -6,7 +6,6 @@ node_modules/
 MASTER-SEED.txt
 launchpad/keys/
 program/target/
-program/Cargo.lock
 *.log
 mainnet-*.json
 scratchpad/
