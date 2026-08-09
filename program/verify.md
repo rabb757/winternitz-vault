@@ -14,5 +14,5 @@ sha256sum program/target/deploy/winternitz_vault.so
 Upload the record for the explorer to pick up:
 
 ```bash
-solana-verify verify-from-repo   --remote   --commit-hash 82cf98a2ac4de70f3f799afcc4a5911423a34f04   --library-name winternitz_vault   --program-id 13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT   https://github.com/wetburn/winternitz-vault
+solana-verify verify-from-repo   --remote   --commit-hash 82cf98a2ac4de70f3f799afcc4a5911423a34f04   --library-name winternitz_vault   --program-id 13EtnfYGUH8NaGAnUpDTVgSsXoewNnULp7ESwHzQUANT   https://github.com/rabb757/winternitz-vault
 ```

@@ -6,7 +6,7 @@ solana_security_txt::security_txt! {
     project_url: "https://winternitz.io",
     contacts: "email:security@winternitz.io",
     policy: "https://winternitz.io/security",
-    source_code: "https://github.com/wetburn/winternitz-vault",
+    source_code: "https://github.com/rabb757/winternitz-vault",
     preferred_languages: "en,es",
     auditors: "None yet"
 }
