@@ -2,14 +2,14 @@
 name = "winternitz-vault"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.84"
 description = "SPL token mint authority and treasury guarded by one-time hash-based signatures"
 
 [lib]
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-solana-program = "=2.0.24"
+solana-program = "=2.3.0"
 
 [profile.release]
 overflow-checks = true
