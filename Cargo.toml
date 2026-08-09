@@ -3,3 +3,6 @@
 [workspace]
 members = ["program"]
 resolver = "2"
+
+[workspace.metadata.solana]
+solana-version = "2.4.0"
