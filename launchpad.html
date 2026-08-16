@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Quantum Launchpad, launch a token a quantum computer cannot forge</title>
 <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+<!-- A tab needs about 32px. Offering only the 512px master meant a browser
+     downloaded 300 KB to draw a favicon. -->
+<link rel="icon" type="image/png" href="/assets/logo-64.png" sizes="64x64" />
 <link rel="icon" type="image/png" href="/assets/logo-512.png" sizes="512x512" />
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
 <meta property="og:image" content="https://winternitz.io/assets/og.png" />
@@ -223,7 +226,7 @@ img{ max-width:100%; display:block; }
 <body>
 
 <header class="header">
-  <a class="brand" href="/"><img class="brand__mark" src="/assets/logo-512.png" alt="" width="22" height="22" /><span>Winternitz</span></a>
+  <a class="brand" href="/"><img class="brand__mark" src="/assets/logo-64.png" alt="" width="22" height="22" decoding="async" /><span>Winternitz</span></a>
   <nav class="header__nav">
     <a href="https://github.com/rabb757/winternitz-vault" target="_blank" rel="noopener">GitHub</a><a href="#solutions">Uses</a><a href="#roadmap">Roadmap</a><a href="#board">Board</a><a href="/#versus">Why it holds</a><a href="/#proof">Proof</a>
   </nav>
@@ -447,7 +450,15 @@ img{ max-width:100%; display:block; }
 </footer>
 
 <script type="module">
-import { Transaction, VersionedTransaction } from "https://esm.sh/@solana/web3.js@1.98.0";
+/* web3.js is the heaviest thing on the page and nothing on first paint
+   needs it: it is only used to deserialise a transaction the API has
+   already built, which cannot happen before a wallet is connected.
+   Importing it at module scope held the board hostage to a megabyte of
+   ESM on every visit, which is most of what a phone was waiting for.
+   Loaded on demand, and warmed in the background the moment a wallet
+   connects, so signing is not slower for it. */
+let web3;
+const solana = () => (web3 ??= import("https://esm.sh/@solana/web3.js@1.98.0"));
 
 const $ = (id) => document.getElementById(id);
 const provider = () => window.phantom?.solana ?? (window.solana?.isPhantom ? window.solana : null);
@@ -458,6 +469,7 @@ let imageData = null;
 async function connect() {
   const p = provider();
   if (!p) { window.open("https://phantom.app/", "_blank"); return; }
+  solana();                       // warm the signer bundle while the user approves
   const { publicKey } = await p.connect();
   wallet = publicKey.toBase58();
   const short = wallet.slice(0, 4) + "…" + wallet.slice(-4);
@@ -531,6 +543,7 @@ $("submit").addEventListener("click", async () => {
     if (!r.ok) throw new Error(j.error ?? "fallo del servidor");
 
     setStatus(`firma en tu wallet · ${j.mint}`);
+    const { Transaction } = await solana();
     const tx = Transaction.from(Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0)));
     const { signature } = await provider().signAndSendTransaction(tx);
     setStatus(`lanzado: ${signature}`, "ok");
@@ -557,7 +570,7 @@ function card(t) {
   const pct = Math.round((t.progress ?? 0) * 100);
   const sym = t.symbol || t.mint.slice(0, 2);
   const avatar = t.image
-    ? `<img class="avatar" src="${esc(t.image)}" alt="" loading="lazy" />`
+    ? `<img class="avatar" src="${esc(t.image)}" alt="" loading="lazy" decoding="async" width="54" height="54" />`
     : `<div class="avatar">${esc(sym.slice(0, 2)).toUpperCase()}</div>`;
   let socials = "";
   if (t.twitter) socials += `<a href="${esc(t.twitter)}" target="_blank" rel="noopener" aria-label="X">${icon("x")}</a>`;
@@ -743,6 +756,7 @@ $("tk-go").addEventListener("click", async () => {
     if (!r.ok) throw new Error(j.error ?? "no se pudo preparar");
 
     const bytes = Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0));
+    const { Transaction, VersionedTransaction } = await solana();
     const tx = j.versioned ? VersionedTransaction.deserialize(bytes) : Transaction.from(bytes);
     say("firma en tu wallet…");
     const { signature } = await provider().signAndSendTransaction(tx);
@@ -821,6 +835,7 @@ $("rw-go").addEventListener("click", async () => {
     const j = await r.json();
     if (!r.ok) throw new Error(j.error ?? "no se pudo preparar");
     if (!j.transaction) { say("todavia no hay nada que cobrar"); return; }
+    const { Transaction } = await solana();
     const tx = Transaction.from(Uint8Array.from(atob(j.transaction), (c) => c.charCodeAt(0)));
     say("firma en tu wallet…");
     const { signature } = await provider().signAndSendTransaction(tx);
@@ -855,7 +870,7 @@ document.getElementById("w-generate").addEventListener("click", async function (
     say("Generating on this device...");
     var bip = await import("https://esm.sh/@scure/bip39@1.3.0");
     var wl  = await import("https://esm.sh/@scure/bip39@1.3.0/wordlists/english");
-    var sdk = await import("https://esm.sh/@solana/web3.js@1.98.0");
+    var sdk = await solana();
     var sha = await import("https://esm.sh/@noble/hashes@1.7.1/sha3");
 
     var words = bip.generateMnemonic(wl.wordlist, 256);
@@ -898,7 +913,30 @@ document.getElementById("w-copy").addEventListener("click", async function () {
   } catch (e) {}
 });
 
-setInterval(() => load(), 8000);
+/* The board used to poll every 8 s for the life of the tab, backgrounded or
+   not: on a phone that is a request and a re-render every 8 s behind the
+   lock screen, for a list nobody is looking at. Poll only while the tab is
+   in front, and refresh once on the way back so it is never stale. */
+let poll = null;
+
+function startPolling() {
+  if (poll) return;
+  poll = setInterval(() => { if (!document.hidden) load(); }, 8000);
+}
+
+function stopPolling() {
+  if (!poll) return;
+  clearInterval(poll);
+  poll = null;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { stopPolling(); return; }
+  load();
+  startPolling();
+});
+
+if (!document.hidden) startPolling();
 </script>
 </body>
 </html>

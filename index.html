@@ -6,6 +6,9 @@
 <title>Winternitz, the first quantum-protection token on Solana</title>
 
 <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+<!-- A tab needs about 32px. Offering only the 512px master meant a browser
+     downloaded 300 KB to draw a favicon. -->
+<link rel="icon" type="image/png" href="/assets/logo-64.png" sizes="64x64" />
 <link rel="icon" type="image/png" href="/assets/logo-512.png" sizes="512x512" />
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
 <meta property="og:image" content="https://winternitz.io/assets/og.png" />
@@ -15,6 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet" />
+<!-- The hero clips are fetched lazily; warming the connection means the
+     handshake is not on the clock once they are. -->
+<link rel="preconnect" href="https://d8j0ntlcm91z4.cloudfront.net" />
 
 <style>
 /* ============================================================
@@ -587,6 +593,16 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
   .features{ height:auto; }
   body{ overflow:auto; }
   .frame{ height:auto; min-height:100vh; }
+
+  /* Stacked into one column, the page below the fold is several phone
+     screens of tables and hairlines. Letting the browser skip layout and
+     paint for the parts nobody has scrolled to yet is what makes the
+     first scroll smooth; `auto` in contain-intrinsic-size remembers the
+     real height once measured, so the scrollbar does not jump. */
+  .versus, .how, .audit, .proof{
+    content-visibility:auto;
+    contain-intrinsic-size:auto 640px;
+  }
 }
 
 /* ============================================================
@@ -871,7 +887,7 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
   <!-- ========================= HEADER ========================= -->
   <header class="header row-grid">
     <div class="header__brand">
-      <img class="header__logo" src="/assets/logo-512.png" alt="" width="24" height="24" />
+      <img class="header__logo" src="/assets/logo-64.png" alt="" width="24" height="24" decoding="async" />
       <span class="header__word">Winternitz</span>
     </div>
 
@@ -921,15 +937,14 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
 
     </div>
 
-    <div class="hero__visual">
+    <!-- Both clips are ~2.6 MB. Neither is fetched until the panel is close to
+         the viewport, and the hover clip is only fetched on a pointer that can
+         actually hover, so a phone never pays for it. -->
+    <div class="hero__visual"
+         data-video="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_133235_37fdd7c6-69cb-44f1-9936-4600b59d3ee7.mp4"
+         data-video-hover="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_135732_f8178baa-95d1-4c08-b880-a9f4439e4a63.mp4">
       <video class="hero__video hero__video--base"
-             autoplay muted loop playsinline preload="auto">
-        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_133235_37fdd7c6-69cb-44f1-9936-4600b59d3ee7.mp4" type="video/mp4" />
-      </video>
-      <video class="hero__video hero__video--hover"
-             autoplay muted loop playsinline preload="auto">
-        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260807_135732_f8178baa-95d1-4c08-b880-a9f4439e4a63.mp4" type="video/mp4" />
-      </video>
+             muted loop playsinline preload="none"></video>
     </div>
   </section>
 
@@ -1544,13 +1559,103 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
   });
 
   /* ---------------------------------------------------------
-     Autoplay can be refused (data saver, low power). Retrying on
-     first interaction keeps the panel from sitting as a grey block.
+     Hero video.
+
+     The two clips are 2.7 MB and 2.5 MB. They used to be two
+     autoplaying <video preload="auto"> tags, so every phone paid
+     5.2 MB and ran two decoders before the page was even scrolled,
+     and the second clip only ever shows on hover, which a touch
+     screen does not have.
+
+     Now: nothing is fetched until the panel is near the viewport,
+     the hover clip is only fetched on a real pointer, and a data
+     saver gets a tap to start instead of an automatic download.
      --------------------------------------------------------- */
-  var videos = Array.prototype.slice.call(document.querySelectorAll(".hero__video"));
-  function play() { videos.forEach(function (v) { var p = v.play(); if (p) p.catch(function () {}); }); }
-  play();
-  document.addEventListener("pointerdown", play, { once: true });
+  var visual = document.querySelector(".hero__visual");
+  var base = visual && visual.querySelector(".hero__video--base");
+
+  if (base) {
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    var thrifty = !!(conn && (conn.saveData || /^(slow-)?2g$/.test(conn.effectiveType || "")));
+    var started = false;
+
+    function attach(video, src) {
+      video.src = src;
+      var p = video.play();
+      if (p) p.catch(function () {});
+    }
+
+    /* The hover clip crossfades in on :hover, so it is dead weight on
+       anything without a hovering pointer. */
+    function addHoverClip() {
+      var src = visual.dataset.videoHover;
+      if (!src || thrifty) return;
+      if (!window.matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+      var hover = document.createElement("video");
+      hover.className = "hero__video hero__video--hover";
+      hover.muted = true;
+      hover.loop = true;
+      hover.playsInline = true;
+      hover.setAttribute("playsinline", "");
+      visual.appendChild(hover);
+      attach(hover, src);
+    }
+
+    function start() {
+      if (started) return;
+      started = true;
+      attach(base, visual.dataset.video);
+      /* Reduced motion still wants a picture rather than a grey block,
+         it just does not want a loop running behind the text. */
+      if (reduced) {
+        base.loop = false;
+        base.addEventListener("loadeddata", function () { base.pause(); }, { once: true });
+      }
+      var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 400); };
+      idle(addHoverClip);
+    }
+
+    /* Even lazily, a 2.7 MB clip must not race the stylesheet and the fonts
+       for a phone's bandwidth. Nothing starts before the page has loaded. */
+    function whenIdle(fn) {
+      var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 200); };
+      if (document.readyState === "complete") idle(fn);
+      else window.addEventListener("load", function () { idle(fn); }, { once: true });
+    }
+
+    if (thrifty) {
+      /* Do not spend a metered connection on decoration; one tap starts it. */
+      visual.addEventListener("pointerdown", start, { once: true });
+    } else if ("IntersectionObserver" in window) {
+      whenIdle(function () {
+        var io = new IntersectionObserver(function (entries) {
+          if (entries.some(function (e) { return e.isIntersecting; })) {
+            io.disconnect();
+            start();
+          }
+        }, { rootMargin: "200px" });
+        io.observe(visual);
+      });
+    } else {
+      whenIdle(start);
+    }
+
+    /* Autoplay can still be refused (low power mode). Retrying on the
+       first interaction keeps the panel from sitting as a grey block. */
+    document.addEventListener("pointerdown", function () {
+      /* On a metered connection only a tap on the panel itself starts it,
+         so a tap anywhere else must not pull the clip down. */
+      if (!thrifty) start();
+      if (!started) return;
+      var vids = visual.querySelectorAll(".hero__video");
+      Array.prototype.forEach.call(vids, function (v) {
+        if (v.paused && !(reduced && v === base)) {
+          var p = v.play();
+          if (p) p.catch(function () {});
+        }
+      });
+    }, { once: true });
+  }
 })();
 </script>
 
@@ -1573,9 +1678,10 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
     "THE END OF ED25519 IS THE END OF EVERYONE ELSE",
     "LIVE ON MAINNET · GO AND CHECK",
   ];
-  var i = 0, j = 0, deleting = false;
+  var i = 0, j = 0, deleting = false, timer = null;
 
   function tick() {
+    timer = null;
     var full = lines[i];
     j += deleting ? -1 : 1;
     el.textContent = full.slice(0, j);
@@ -1583,10 +1689,35 @@ body.nav-open .navsheet a:nth-child(4){ animation-delay:.24s; color:var(--blue);
     var wait = deleting ? 22 : 45;
     if (!deleting && j === full.length) { wait = 2200; deleting = true; }
     else if (deleting && j === 0) { deleting = false; i = (i + 1) % lines.length; wait = 320; }
-    setTimeout(tick, wait);
+    timer = setTimeout(tick, wait);
   }
+
+  /* This used to be an unconditional timer chain: a text node rewritten
+     every 45 ms for as long as the tab existed, laying out and painting
+     behind a backgrounded tab and after the badge had scrolled away.
+     On a phone that is the loop that keeps the CPU awake. */
+  var onScreen = true, visible = !document.hidden;
+
+  function sync() {
+    var run = onScreen && visible;
+    if (run && !timer) timer = setTimeout(tick, 120);
+    if (!run && timer) { clearTimeout(timer); timer = null; }
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    visible = !document.hidden;
+    sync();
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      sync();
+    }, { rootMargin: "80px" }).observe(el);
+  }
+
   el.textContent = "";
-  setTimeout(tick, 600);
+  timer = setTimeout(tick, 600);
 })();
 </script>
 </body>
